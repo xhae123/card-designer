@@ -6,7 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/Claude%20Code-skill-7C3AED" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/node-%E2%89%A520-3B82F6" alt="Node 20+">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.1.0-22D3EE" alt="Version 0.1.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.2.0-22D3EE" alt="Version 0.2.0"></a>
 </p>
 
 ![Card Designer Banner](docs/hero.png)

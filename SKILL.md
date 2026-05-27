@@ -136,6 +136,8 @@ CASE B — 1 or more brands:
 
 Once a brand is selected, always display at the start of the session: **"현재 브랜드: {name}"**
 
+**Then run Session Context Recovery** (see "Session Context Recovery" section below) before moving to Step [2]. Skip for brand-new brands with no timeline.jsonl yet.
+
 ### [1] Brand Onboarding (first visit)
 
 **"Show and align together" approach. Visual conversation comes before questions.**
@@ -228,6 +230,9 @@ Analyze user input:
 [4] Load Brand Context
     - brands/{brand}/taste-profile.json
     - brands/{brand}/learnings.jsonl (last 20 lines)
+    - ★ Load ALL `type: rule` entries from learnings.jsonl (full scan, not just last 20)
+      → Apply these rules to layout/typography/color decisions BEFORE writing HTML.
+      → Rules with `applies_to: ["all slides"]` are non-negotiable defaults; never ask the user about them again.
 
 [5] Content Analysis & Structuring
     - Extract key messages from the user's topic
@@ -545,32 +550,94 @@ Filenames always follow the `slide_XX` format (starting from 01, zero-padded).
 
 ---
 
-## User Decision Format
+## Decision Brief Format (D<N>)
 
-Used only when a design choice is needed. By default, make the decision, show the result, then accept corrections.
+Used when a real design choice needs the user's input. Skip for trivial defaults — apply the designer's judgment and show the result.
+
+**Format (Korean-facing, 해요체):**
 
 ```
-**D1 — [Question Title]**
-Current state: [one-line context]
-Recommendation: [option] — [reason]
-Alternative: [option] — [pros/cons]
+**D1 — [한 줄 질문 제목]**
+현재 상태: [한 줄 맥락 — 지금 어떤 단계인지]
+ELI10: [이 결정이 뭘 의미하는지 2-3문장. 디자인 용어 풀어서]
+영향: [선택이 바뀌면 결과물에서 뭐가 달라지는지]
+추천: [선택지 A] — [이유 한 줄]
+대안: [선택지 B] — [언제 더 나은지]
 ```
 
-**Minimize questions.** In most cases, decide autonomously based on taste-profile and learnings.
-Only ask when it's truly impossible to decide (when the difference between options is stark and has major brand impact).
+Number sequentially within a session: D1, D2, D3...
+
+**Use D<N> when:** finalizing onboarding direction (A/B/C); tone shifts affecting multiple slides; edits that would flip a high-confidence (≥0.8) value; conflicting feedback (user says "lighter" but brand confidence ≥0.8 says dark).
+
+**Do NOT use D<N> when:** small tweaks (color shade nudge, single-slide text edit); the designer's recommendation is obvious and risk-free; the decision is reversible in one round of feedback.
+
+**Default mode is "decide → show → accept corrections."** D<N> is the exception, not the rule.
 
 ---
 
-## Completion Status
+## Session Context Recovery
 
-Every run ends with one of the following:
+Every brand has a `brands/{name}/timeline.jsonl` — an append-only event log read at session start to ground the conversation in past work.
 
-| Status | Meaning |
+### Event schema
+
+```jsonl
+{"ts":"2026-05-28T10:14:00Z","kind":"onboarded","brand":"devlog","direction":"C","confidence":0.5}
+{"ts":"2026-05-28T10:45:00Z","kind":"series_generated","topic":"AI coding tools","slides":7,"approved":true}
+{"ts":"2026-05-28T11:02:00Z","kind":"profile_edit","field":"color.accent","old":"#3B82F6","new":"#22D3EE","reason":"more vibrant"}
+```
+
+**Event kinds:** `onboarded` | `direction_selected` | `series_generated` | `profile_edit` | `feedback` | `rule_promoted`
+
+### Recovery flow (after Step [0] brand selection)
+
+1. Read last 10 entries of `brands/{name}/timeline.jsonl`. If file is missing/empty → skip silently (no welcome-back for first-time brands).
+2. Otherwise display a brief Korean summary (≤4 lines):
+   - "마지막 작업: {N일 전}, '{topic}' 시리즈 ({승인됨/수정요청됨})"
+   - "최근 학습된 규칙: {1-2개 design-rules 발췌}"
+   - If 5+ `series_generated` events total: "지금까지 {N}개 시리즈를 만들었어요"
+
+### When the AI writes to timeline.jsonl
+
+The AI appends one JSONL line directly via the Write/Bash tool at these moments. ISO 8601 UTC timestamps. Append-only — never rewrite.
+
+| Moment | Event kind |
 |---|---|
-| `DONE` | Card generation complete, user approved |
-| `DONE_WITH_CONCERNS` | Cards generated but user reserved judgment |
-| `BLOCKED` | Generation impossible (insufficient info, technical issue) |
-| `NEEDS_CONTEXT` | Additional information needed |
+| Onboarding Phase 4 completes | `onboarded` |
+| Shotgun direction chosen (Phase 3) | `direction_selected` |
+| A card series is rendered AND shown | `series_generated` (initial `approved: null`) |
+| User approves/rejects the series | re-append `series_generated` with final `approved`, or `feedback` |
+| taste-profile.json field changed | `profile_edit` |
+| Rule promotion fires | `rule_promoted` |
+
+---
+
+## Memory Consolidation — Rule Promotion
+
+The skill consolidates `learnings.jsonl` into enforceable rules so future sessions get smarter automatically.
+
+### Promotion algorithm (run at session end, before Completion Status)
+
+1. Scan `brands/{name}/learnings.jsonl`
+2. Group entries by semantic insight (e.g., "좌측 정렬 선호", "다크 배경 + 화이트 텍스트 승인", "그라데이션 텍스트 위 가독성 거부")
+3. For each group: if 3+ entries of type `approved` or `rejected` exist with confidence ≥7, append a NEW line:
+   ```jsonl
+   {"ts":"...","type":"rule","insight":"이 브랜드는 좌측 정렬을 항상 선호","confidence":9,"promoted_from":"3 approvals","applies_to":["all slides"]}
+   ```
+4. Also append a `rule_promoted` event to `timeline.jsonl`
+5. From now on, when Step [4] loads rules, this insight is applied automatically — no user question needed
+
+**`applies_to` values:** `["all slides"]` (auto-apply everywhere) | `["cover"]` / `["cta"]` / `["data"]` (role-scoped) | `["typography"]` / `["color"]` / `["layout"]` (dimension-scoped, informational only).
+
+### Rule demotion
+
+If a `type: rule` insight is contradicted by 2 fresh `rejected` or `override` entries, append a `rule_demoted` line and stop auto-applying from next session. The original rule line stays for history — demotion is a new event, not a rewrite.
+
+```jsonl
+{"ts":"...","type":"rule_demoted","insight":"이 브랜드는 좌측 정렬을 항상 선호","reason":"2 contradictions in last 5 sessions"}
+```
+
+**Implementation note:** The AI runs the promotion scan in-session — no external script. Be conservative: only promote when the semantic group is unambiguous, not just superficially similar.
 
 ---
 
@@ -605,3 +672,27 @@ for all tokens (weekly decay, check lastUpdated):
 | `references/content-principles.md` | Copywriting principles | During content structuring |
 | `references/font-presets.md` | Font recommendations & @import URLs | During font selection |
 | `references/visual-effects.md` | CSS/SVG visual effects (halftone, 3D, glass, text effects) | During HTML generation |
+
+---
+
+## Completion Status (MANDATORY)
+
+Every session — onboarding, generation, brand edit — MUST end by emitting the block below as the FINAL message. This is non-negotiable. The task is not considered complete until this block is shown.
+
+```
+═══ SESSION COMPLETE ═══
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Brand: {name}
+Output: {absolute path to output dir or "(none)"}
+Learned: {1-2 line summary of what was logged to learnings.jsonl}
+Next: {suggested follow-up or "(none)"}
+═══════════════════════
+```
+
+**Status values:**
+- `DONE` — work complete, user approved
+- `DONE_WITH_CONCERNS` — work delivered but user reserved judgment or noted issues
+- `BLOCKED` — could not proceed (technical failure, missing dependency)
+- `NEEDS_CONTEXT` — paused awaiting user input (info gathering, decision brief)
+
+**Rules:** emit AFTER rule promotion scan and timeline.jsonl writes; use absolute paths for `Output`; `Learned` must reflect actual entries appended this session; if `NEEDS_CONTEXT`, `Next` states what input is awaited; do not add commentary after the block.
