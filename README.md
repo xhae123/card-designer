@@ -70,29 +70,29 @@ Open Claude Code and type `/card-designer` — the skill should appear in your a
 
 ```
 You:  /card-designer
-AI:   새 브랜드를 만들게요. 몇 가지만 알려주세요:
-      - 브랜드/채널 이름은?
-      - 어떤 분야인가요?
-      - 톤/분위기는?
-      - 인스타 핸들 있으면 같이 알려주세요
+AI:   Let's set up a new brand. Just tell me a few things:
+      - Brand or channel name?
+      - What field / industry?
+      - Tone? (professional / friendly / emotional / impactful)
+      - Instagram handle if you have one
 
-You:  "멋쟁이사자처럼 백엔드 스터디" / 교육-IT / 전문적인데 친근한 / @likelion_backend
+You:  "Devlog by Tom" / dev tools / professional but approachable / @devlog_tom
 
 AI:   [Shows 3 design directions: Impact, Minimal, Modern]
-      A, B, C 중 어떤 방향이 마음에 드세요?
+      Which direction works for you — A, B, or C?
 
-You:  A인데 좀 더 밝게
+You:  C, but a little warmer
 
-AI:   [Adjusts and shows refined sample]
+AI:   [Adjusts palette, regenerates a refined sample]
       ...
 ```
 
 ### Generating cards
 
 ```
-You:  이번 주 스터디 주제 "Spring Security 인증/인가" 카드뉴스 만들어줘
+You:  Make a carousel on "5 AI coding tools every junior dev should know in 2026"
 
-AI:   현재 브랜드: 멋쟁이사자처럼 백엔드 스터디
+AI:   Current brand: Devlog by Tom
       [Generates 5-7 slides: cover → content → CTA]
       [Opens rendered PNGs for review]
 ```
@@ -100,11 +100,11 @@ AI:   현재 브랜드: 멋쟁이사자처럼 백엔드 스터디
 ### Feedback loop
 
 ```
-You:  3번 슬라이드 텍스트가 너무 많아
+You:  Slide 3 has too much text
 AI:   [Splits content, regenerates, updates learnings]
 
-You:  좋아요!
-AI:   [Logs approval, increases confidence scores]
+You:  Looks great!
+AI:   [Logs approval, increases confidence on used tokens]
 ```
 
 ## How it works

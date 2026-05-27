@@ -29,9 +29,9 @@ const html = `<!DOCTYPE html>
 <meta charset="utf-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 2400px; height: 1000px; overflow: hidden; }
+  html, body { width: 2400px; height: 800px; overflow: hidden; }
   body {
-    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 80%);
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 85%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -43,9 +43,9 @@ const html = `<!DOCTYPE html>
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 1400px;
+    width: 1900px;
     height: 700px;
-    background: radial-gradient(ellipse, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
     pointer-events: none;
   }
 
@@ -59,13 +59,13 @@ const html = `<!DOCTYPE html>
   }
 
   .card {
-    width: 320px;
-    height: 320px;
-    border-radius: 20px;
+    width: 480px;
+    height: 480px;
+    border-radius: 24px;
     overflow: hidden;
     box-shadow:
-      0 30px 80px rgba(0, 0, 0, 0.6),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
+      0 40px 100px rgba(0, 0, 0, 0.65),
+      0 0 0 1px rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     background: #0F172A;
   }
@@ -77,20 +77,21 @@ const html = `<!DOCTYPE html>
     display: block;
   }
 
-  .card-0 { transform: rotate(-9deg) translate(60px, 30px); z-index: 1; }
-  .card-1 { transform: rotate(-4deg) translate(30px, 8px); z-index: 2; }
+  .card-0 { transform: rotate(-10deg) translate(140px, 40px); z-index: 1; }
+  .card-1 { transform: rotate(-5deg) translate(70px, 12px); z-index: 2; }
   .card-2 {
-    width: 380px;
-    height: 380px;
+    width: 560px;
+    height: 560px;
+    border-radius: 28px;
     transform: rotate(0deg);
     z-index: 5;
     box-shadow:
-      0 40px 100px rgba(0, 0, 0, 0.7),
-      0 0 0 1px rgba(255, 255, 255, 0.1),
-      0 0 60px rgba(59, 130, 246, 0.2);
+      0 50px 120px rgba(0, 0, 0, 0.75),
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 0 80px rgba(59, 130, 246, 0.25);
   }
-  .card-3 { transform: rotate(4deg) translate(-30px, 8px); z-index: 2; }
-  .card-4 { transform: rotate(9deg) translate(-60px, 30px); z-index: 1; }
+  .card-3 { transform: rotate(5deg) translate(-70px, 12px); z-index: 2; }
+  .card-4 { transform: rotate(10deg) translate(-140px, 40px); z-index: 1; }
 </style>
 </head>
 <body>
@@ -104,7 +105,7 @@ await writeFile(htmlPath, html);
 
 const browser = await puppeteer.launch({ headless: true });
 const page = await browser.newPage();
-await page.setViewport({ width: 2400, height: 1000, deviceScaleFactor: 1 });
+await page.setViewport({ width: 2400, height: 800, deviceScaleFactor: 1 });
 await page.setContent(html, { waitUntil: "networkidle0", timeout: 30_000 });
 await new Promise((r) => setTimeout(r, 500));
 
@@ -112,7 +113,7 @@ const outPath = join(__dirname, "..", "banner.png");
 await page.screenshot({
   path: outPath,
   type: "png",
-  clip: { x: 0, y: 0, width: 2400, height: 1000 },
+  clip: { x: 0, y: 0, width: 2400, height: 800 },
 });
 
 await browser.close();
