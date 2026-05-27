@@ -5,6 +5,24 @@ All notable changes to Card Designer will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-05-28
+
+### Added
+
+- **Render-time overflow detection + auto-retry** — `scripts/render.js` now walks every descendant of `.slide`, measures bounding rects, and detects any element extending past the slide box. On overflow, it injects a CSS rule that scales `.content` down 10% per retry (max 2 retries), then re-screenshots. If overflow persists, the PNG is saved and flagged in the summary JSON (`overflow: true`, with offending selectors and px counts).
+- **Font fallback detection** — after `document.fonts.ready`, the renderer inspects key text elements' resolved `font-family`. A serif fallback (Times/Georgia/etc.) on the primary family logs a warning, surfacing silent `@import` failures that previously shipped unnoticed.
+- **`references/quality-gates.md`** — hard, non-negotiable ceilings: per-role character caps (cover 60 / statement 40 / detail 30+80 / list 5×30 / quote 60+20 / data 1+30 / cta 40), series structural limits (5–7 slides default, max 10, cover first, CTA last, no 3 consecutive same-role), and visual limits (max 3 colors/slide, ≥2 font weights). Violation policy: split, drop, or reject — never silently truncate.
+- **`references/asset-handling.md`** — logo and image conventions: `brands/{name}/assets/` directory, base64 vs relative-path tradeoffs, max 80px logo height with preserved aspect ratio, dark-overlay requirement (≥40%) for photo-background covers, SVG-first format priority, and the once-per-asset intake flow.
+- **Series Coherence Check (Step [8.5])** — before rendering, the AI must answer 5 carousel-level questions in plain text (cover promise resolved? tone consistent? narrative arc? cover strongest? slides stand alone?). Any "no" forces revision pre-render.
+- **Quality Gates step (Step [8.25])** — explicit step that loads `quality-gates.md` and enforces all hard limits before self-verification.
+
+### Changed
+
+- **`scripts/validate.js`** — extended with four new checks: font-weight diversity (only 400/700 → AI-slop warning), AI-slop font detection (Inter/Roboto/Arial/Helvetica as primary family → warning), per-slide color count (>3 distinct colors → warning), and series-level consistency (mixed `.page-number` usage, divergent `.brand-mark` positions, multiple body font-families across slides). Directory mode now emits `{ files, series }` instead of a bare array.
+- **`scripts/render.js` summary JSON** — adds `overflowed` count and per-file `overflow`, `overflowElements`, `retries`, `fontFallback` fields.
+- **SKILL.md Directory Structure + Reference Files table** — now list `quality-gates.md`, `asset-handling.md`, `scripts/validate.js`, and `brands/{name}/assets/`.
+- **SKILL.md Design Variety section** — compressed (~25 lines) without losing rules: each rule is now a single dense sentence rather than a multi-bullet expansion. Net SKILL.md line count unchanged at 698.
+
 ## [0.2.0] — 2026-05-28
 
 ### Added

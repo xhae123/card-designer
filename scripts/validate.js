@@ -488,6 +488,170 @@ function parseViewportFromHtml(html) {
   };
 }
 
+// --- Font-weight diversity ---
+
+function checkFontWeightDiversity(html) {
+  const styleBlocks = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+  const combined = styleBlocks.join(" ");
+  const weights = new Set();
+  const weightPattern = /font-weight\s*:\s*([0-9]{3}|bold|normal|lighter|bolder)/gi;
+  let m;
+  while ((m = weightPattern.exec(combined))) {
+    const v = m[1].toLowerCase();
+    if (v === "bold") weights.add("700");
+    else if (v === "normal") weights.add("400");
+    else if (v === "lighter") weights.add("300");
+    else if (v === "bolder") weights.add("800");
+    else weights.add(v);
+  }
+
+  if (weights.size === 0) return [];
+  const set = [...weights].sort();
+  const onlyBasic =
+    (set.length === 1 && (set[0] === "400" || set[0] === "700")) ||
+    (set.length === 2 && set[0] === "400" && set[1] === "700");
+  if (onlyBasic) {
+    return [
+      {
+        rule: "font-weight-diversity",
+        message: `Only basic font weights used (${set.join(", ")}) — AI slop signal. Mix in 300/500/600/800 for hierarchy.`,
+        severity: "warning",
+      },
+    ];
+  }
+  return [];
+}
+
+// --- AI-slop font detection ---
+
+function checkAiSlopFonts(html) {
+  const styleBlocks = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+  const combined = styleBlocks.join(" ");
+  const familyPattern = /font-family\s*:\s*([^;}]+)[;}]/gi;
+  const slopFonts = ["inter", "roboto", "arial", "helvetica"];
+  const flagged = new Set();
+  let m;
+  while ((m = familyPattern.exec(combined))) {
+    const stack = m[1].trim();
+    const primary = stack.split(",")[0].trim().replace(/^["']|["']$/g, "").toLowerCase();
+    if (slopFonts.includes(primary)) {
+      flagged.add(primary);
+    }
+  }
+  if (flagged.size === 0) return [];
+  return [
+    {
+      rule: "ai-slop-font",
+      message: `AI-slop font(s) used as primary family: ${[...flagged].join(", ")}. Prefer Pretendard, SUIT, Wanted Sans, Noto Sans KR.`,
+      severity: "warning",
+    },
+  ];
+}
+
+// --- Per-slide color count ---
+
+function extractColorsFromStyles(html) {
+  const styleBlocks = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+  const combined = styleBlocks.join(" ");
+  const colors = new Set();
+
+  const hexPattern = /#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/g;
+  let m;
+  while ((m = hexPattern.exec(combined))) {
+    const parsed = parseHexColor("#" + m[1]);
+    if (parsed) colors.add(parsed.join(","));
+  }
+
+  const rgbPattern =
+    /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)/gi;
+  while ((m = rgbPattern.exec(combined))) {
+    colors.add(`${m[1]},${m[2]},${m[3]}`);
+  }
+  return colors;
+}
+
+function checkColorCount(html) {
+  const colors = extractColorsFromStyles(html);
+  if (colors.size > 3) {
+    return [
+      {
+        rule: "color-count",
+        message: `${colors.size} distinct colors used (max 3 per slide). Reduce to background + foreground + accent.`,
+        severity: "warning",
+      },
+    ];
+  }
+  return [];
+}
+
+// --- Series-level consistency (multi-file) ---
+
+function summarizeSlideForSeries(html) {
+  const tags = extractTags(html);
+  const ruleMap = parseStyleBlocks(html);
+
+  const hasPageNumber = tags.some((t) =>
+    extractClasses(t.attrs).includes("page-number")
+  );
+
+  const brandMarkRule = ruleMap[".brand-mark"] || null;
+  const brandMarkSignature = brandMarkRule
+    ? [
+        brandMarkRule["top"] || "",
+        brandMarkRule["bottom"] || "",
+        brandMarkRule["left"] || "",
+        brandMarkRule["right"] || "",
+      ].join("|")
+    : null;
+
+  // Primary body font-family
+  const bodyRule = ruleMap["body"] || ruleMap[".slide"] || {};
+  const bodyFont = (bodyRule["font-family"] || "").trim();
+
+  return { hasPageNumber, brandMarkSignature, bodyFont };
+}
+
+function checkSeriesConsistency(files, htmls) {
+  const issues = [];
+  const summaries = htmls.map(summarizeSlideForSeries);
+
+  const pageNumStates = summaries.map((s) => s.hasPageNumber);
+  const allHave = pageNumStates.every(Boolean);
+  const noneHave = pageNumStates.every((v) => !v);
+  if (!allHave && !noneHave) {
+    const withCount = pageNumStates.filter(Boolean).length;
+    issues.push({
+      rule: "series-page-number",
+      message: `Inconsistent page-number usage: ${withCount}/${files.length} slides have it. Use on all body slides or none.`,
+      severity: "warning",
+    });
+  }
+
+  const brandSigs = summaries
+    .map((s) => s.brandMarkSignature)
+    .filter((v) => v !== null);
+  const uniqueBrandSigs = new Set(brandSigs);
+  if (uniqueBrandSigs.size > 1) {
+    issues.push({
+      rule: "series-brand-mark",
+      message: `.brand-mark positioned differently across slides (${uniqueBrandSigs.size} variants). Copy the recurring-elements block verbatim.`,
+      severity: "warning",
+    });
+  }
+
+  const bodyFonts = summaries.map((s) => s.bodyFont).filter(Boolean);
+  const uniqueFonts = new Set(bodyFonts);
+  if (uniqueFonts.size > 1) {
+    issues.push({
+      rule: "series-font-family",
+      message: `Body font-family differs across slides (${uniqueFonts.size} variants). Series must share one font stack.`,
+      severity: "warning",
+    });
+  }
+
+  return issues;
+}
+
 // --- Main ---
 
 async function validateFile(filePath) {
@@ -500,6 +664,9 @@ async function validateFile(filePath) {
     ...checkFontDeclaration(html),
     ...checkEmoji(html),
     ...checkKoreanWordBreak(html),
+    ...checkFontWeightDiversity(html),
+    ...checkAiSlopFonts(html),
+    ...checkColorCount(html),
   ];
 
   const errors = issues.filter((i) => i.severity === "error");
@@ -521,9 +688,11 @@ async function main() {
   }
 
   let files;
+  let isDir = false;
   try {
     const info = await stat(target);
     if (info.isDirectory()) {
+      isDir = true;
       const entries = await readdir(target);
       files = entries
         .filter((f) => extname(f).toLowerCase() === ".html")
@@ -544,12 +713,14 @@ async function main() {
 
   const results = [];
   let hasErrors = false;
+  const htmlBuffers = [];
 
   for (const file of files) {
     try {
       const result = await validateFile(file);
       results.push(result);
       if (!result.valid) hasErrors = true;
+      htmlBuffers.push(await readFile(file, "utf-8"));
     } catch (err) {
       results.push({
         file,
@@ -557,11 +728,22 @@ async function main() {
         warnings: [],
         errors: [{ rule: "parse", message: err.message, severity: "error" }],
       });
+      htmlBuffers.push("");
       hasErrors = true;
     }
   }
 
-  console.log(JSON.stringify(results, null, 2));
+  // Series-level consistency only runs for directories with 2+ slides.
+  let seriesIssues = [];
+  if (isDir && files.length >= 2) {
+    seriesIssues = checkSeriesConsistency(files, htmlBuffers);
+  }
+
+  const output = {
+    files: results,
+    series: seriesIssues,
+  };
+  console.log(JSON.stringify(output, null, 2));
   if (hasErrors) process.exit(1);
 }
 

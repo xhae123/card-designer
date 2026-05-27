@@ -28,17 +28,21 @@ Always read and follow `references/persona.md`.
 ```
 {SKILL_DIR}/
   SKILL.md                          # This file
-  scripts/render.js                 # Puppeteer renderer
+  scripts/render.js                 # Puppeteer renderer (overflow detection + retry)
+  scripts/validate.js               # HTML validator
   references/
     design-principles.md            # Design principles
     anti-patterns.md                # Forbidden patterns
     content-principles.md           # Copywriting principles
     font-presets.md                 # Font presets
     visual-effects.md               # CSS/SVG visual effects patterns
+    quality-gates.md                # Hard limits (NON-NEGOTIABLE)
+    asset-handling.md               # Logos / images / brand assets
   brands/
     {brand-name}/
       taste-profile.json            # Brand taste profile
       learnings.jsonl               # Learning log
+      assets/                       # Brand logos & images (see asset-handling.md)
       output/{YYYYMMDD_HHmm}/      # Generated output
         slide_01.html
         slide_01.png
@@ -226,6 +230,8 @@ Analyze user input:
     - references/content-principles.md
     - references/font-presets.md
     - references/visual-effects.md
+    - references/quality-gates.md
+    - references/asset-handling.md
 
 [4] Load Brand Context
     - brands/{brand}/taste-profile.json
@@ -262,6 +268,19 @@ Analyze user input:
     - Follow design-principles.md rules
     - Each slide: complete HTML document, 1080×1080px
     - ★ Must apply per-slide design variety rules (see "Design Variety" section below)
+
+[8.25] Quality Gates (★ hard limits, non-negotiable)
+    - Load `references/quality-gates.md` and enforce ALL hard limits
+    - Per-role character caps, series structural limits, visual/CSS limits
+    - If user content exceeds a cap: split, drop, or reject — NEVER silently truncate
+
+[8.5] Series Coherence Check (★ carousel-level verification)
+    Before rendering, answer all 5 questions in plain text. If ANY answer is "no" → revise before rendering.
+      1. Does the cover's promise get resolved in the body / cta?
+      2. Are tone and voice consistent across all slides?
+      3. Does the narrative have a clear arc (no random jumps)?
+      4. Is the cover the visually strongest slide?
+      5. Does each slide stand alone (would make sense out of context)?
 
 [9] Self-Verification (before showing to user)
     - Run through the entire anti-patterns.md checklist
@@ -308,36 +327,15 @@ Analyze user input:
 
 ## Design Variety — Per-Slide Visual Diversity (★ Critical)
 
-**Problem:** AI tends to copy-paste the first slide's layout for the rest.
-If every slide is "left-aligned text + dark background," it's a presentation deck, not a card news series.
+**Problem:** AI copy-pastes the first slide's layout for the rest. "Left-aligned text + dark background" repeated = presentation deck, not card news.
 
 ### Required Rules
 
-1. **Each Card Role must be visually distinct**
-   - If `cover` and `detail` share the same layout = failure
-   - If `data` and `list` share the same layout = failure
-   - "Different text" is NOT "different layout." The spatial composition must differ
-
-2. **The cover must be the most visually striking in the carousel**
-   - This is the slide that appears as a thumbnail in the Instagram grid
-   - Use the largest typography, boldest colors, fewest elements
-   - Must have clearly distinguished presence from the other slides
-
-3. **Subtly vary the background treatment between slides**
-   - All the same `#0F172A` solid color = monotonous
-   - Subtle gradient direction changes, minor background brightness adjustments (e.g., `#0F172A` → `#111827` → `#0F172A`)
-   - Gradient only on the cover, solid for the rest — this kind of intentional variation
-
-4. **Actively use visual anchors**
-   - If there's a number → make it HUGE (80-140px, design-principles.md 12.4 Stats pattern)
-   - List numbers → visibly large, in accent color
-   - Dividers → with visible thickness and length
-   - Whitespace → concentrate in a specific direction to create rhythm
-
-5. **Think like a magazine designer, not a coder**
-   - Each slide is a magazine page spread
-   - You're not putting text into a div — you're placing it on a canvas
-   - Whitespace is not "leftover space" but "intentionally emptied space"
+1. **Each Card Role = distinct spatial composition.** `cover ≡ detail` layout, or `data ≡ list` layout, is a failure. Different text is NOT different layout.
+2. **Cover is the strongest slide.** Largest typography, boldest colors, fewest elements — it must clearly out-weight the others in the Instagram grid thumbnail.
+3. **Vary background treatment subtly across slides.** All-identical solid color = monotonous. Use minor brightness shifts (e.g., `#0F172A` → `#111827`) or restrict gradient to the cover.
+4. **Use visual anchors aggressively.** Numbers → HUGE (80–140px, design-principles.md §12.4). List numerals → large, accent color. Dividers → visible thickness. Whitespace → concentrated to create rhythm.
+5. **Think magazine spread, not div container.** Whitespace is intentional, not leftover.
 
 ### Layout Variety Check (refer to design-principles.md Section 12 patterns)
 
@@ -554,15 +552,15 @@ Filenames always follow the `slide_XX` format (starting from 01, zero-padded).
 
 Used when a real design choice needs the user's input. Skip for trivial defaults — apply the designer's judgment and show the result.
 
-**Format (Korean-facing, 해요체):**
+**Format** (write in the user's conversation language — translate field labels accordingly; persona stays in voice):
 
 ```
-**D1 — [한 줄 질문 제목]**
-현재 상태: [한 줄 맥락 — 지금 어떤 단계인지]
-ELI10: [이 결정이 뭘 의미하는지 2-3문장. 디자인 용어 풀어서]
-영향: [선택이 바뀌면 결과물에서 뭐가 달라지는지]
-추천: [선택지 A] — [이유 한 줄]
-대안: [선택지 B] — [언제 더 나은지]
+**D1 — [one-line question title]**
+Context: [one-line grounding — where we are right now]
+ELI10: [2-3 plain sentences explaining what this decision means, no design jargon]
+Impact: [what changes in the output if we pick differently]
+Recommend: [option A] — [one-line reason]
+Alternative: [option B] — [when it would be better]
 ```
 
 Number sequentially within a session: D1, D2, D3...
@@ -592,10 +590,10 @@ Every brand has a `brands/{name}/timeline.jsonl` — an append-only event log re
 ### Recovery flow (after Step [0] brand selection)
 
 1. Read last 10 entries of `brands/{name}/timeline.jsonl`. If file is missing/empty → skip silently (no welcome-back for first-time brands).
-2. Otherwise display a brief Korean summary (≤4 lines):
-   - "마지막 작업: {N일 전}, '{topic}' 시리즈 ({승인됨/수정요청됨})"
-   - "최근 학습된 규칙: {1-2개 design-rules 발췌}"
-   - If 5+ `series_generated` events total: "지금까지 {N}개 시리즈를 만들었어요"
+2. Otherwise display a brief recap (≤4 lines, in the user's conversation language):
+   - Last work: {N days ago}, '{topic}' series ({approved | revisions-requested})
+   - Recently learned rules: {1-2 design-rules excerpts}
+   - If 5+ `series_generated` events total: total series count to date
 
 ### When the AI writes to timeline.jsonl
 
@@ -672,6 +670,8 @@ for all tokens (weekly decay, check lastUpdated):
 | `references/content-principles.md` | Copywriting principles | During content structuring |
 | `references/font-presets.md` | Font recommendations & @import URLs | During font selection |
 | `references/visual-effects.md` | CSS/SVG visual effects (halftone, 3D, glass, text effects) | During HTML generation |
+| `references/quality-gates.md` | Hard limits — character caps, series structure, visual ceilings | Step [8.25] before self-verification |
+| `references/asset-handling.md` | Logo/image handling, base64 vs path, overlay rules | When user mentions assets |
 
 ---
 

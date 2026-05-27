@@ -155,6 +155,77 @@ ${fontFaces}
 
 // --- Rendering ---
 
+// Detect children of `.slide` whose bounding rect extends past the slide box.
+// Returns an array of { selector, overflowRight, overflowBottom } objects.
+async function detectOverflow(page) {
+  return page.evaluate(() => {
+    const slide = document.querySelector(".slide");
+    if (!slide) return { overflows: [], hasSlide: false };
+
+    const slideRect = slide.getBoundingClientRect();
+    const tolerance = 1; // sub-pixel rounding tolerance
+    const overflows = [];
+
+    const describe = (el) => {
+      let sel = el.tagName.toLowerCase();
+      if (el.id) sel += `#${el.id}`;
+      if (el.className && typeof el.className === "string") {
+        const cls = el.className.trim().split(/\s+/).filter(Boolean).join(".");
+        if (cls) sel += `.${cls}`;
+      }
+      return sel;
+    };
+
+    const all = slide.querySelectorAll("*");
+    for (const el of all) {
+      // Skip non-rendered or decoratively-positioned elements that intentionally
+      // sit outside (rare, but page-number / brand-mark are inside .slide).
+      const style = getComputedStyle(el);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) continue;
+
+      const overflowRight = Math.max(0, rect.right - slideRect.right);
+      const overflowBottom = Math.max(0, rect.bottom - slideRect.bottom);
+      if (overflowRight > tolerance || overflowBottom > tolerance) {
+        overflows.push({
+          selector: describe(el),
+          overflowRight: Math.round(overflowRight),
+          overflowBottom: Math.round(overflowBottom),
+        });
+      }
+    }
+    return { overflows, hasSlide: true };
+  });
+}
+
+// Inspect the resolved font-family of key text elements. If a serif fallback
+// appears (e.g. "Times", "serif"), the @import font likely failed to load.
+async function detectFontFallback(page) {
+  return page.evaluate(() => {
+    const slide = document.querySelector(".slide");
+    if (!slide) return [];
+
+    const SERIF_SIGNAL = /\b(times|serif|georgia|garamond)\b/i;
+    const targets = slide.querySelectorAll(
+      "h1, h2, h3, .content, .title, .body, .cover, [class*='title'], [class*='headline']"
+    );
+    const warnings = [];
+    for (const el of targets) {
+      const ff = getComputedStyle(el).fontFamily || "";
+      // The declared family lives at the start; the resolved family is the same
+      // string in Chromium. Only flag if a serif token appears AS THE PRIMARY
+      // family (first comma-separated entry).
+      const primary = ff.split(",")[0].trim().replace(/^["']|["']$/g, "");
+      if (SERIF_SIGNAL.test(primary)) {
+        warnings.push({ family: ff, primary });
+      }
+    }
+    return warnings;
+  });
+}
+
 async function renderSlide(browser, htmlPath) {
   const rawHtml = await readFile(htmlPath, "utf-8");
   if (!rawHtml.trim()) throw new Error("Empty HTML file");
@@ -191,6 +262,52 @@ async function renderSlide(browser, htmlPath) {
     // Extra wait for late font swaps / CSS transitions after fonts.ready resolves.
     await new Promise((r) => setTimeout(r, 500));
 
+    // Font fallback warning — surfaces silent @import failures.
+    const fallbacks = await detectFontFallback(page);
+    if (fallbacks.length > 0) {
+      console.error(
+        `Warning: ${basename(htmlPath)} resolved to a serif fallback for ${fallbacks.length} element(s). Check @import URL.`
+      );
+    }
+
+    // Overflow detection + auto-retry. We scale `.content` down 10% per retry
+    // (transform-origin: center) and re-test. Two retries max; if still
+    // overflowing we screenshot anyway and report it in the summary.
+    const MAX_RETRIES = 2;
+    let overflowResult = await detectOverflow(page);
+    let retries = 0;
+    let scale = 1.0;
+
+    while (overflowResult.overflows.length > 0 && retries < MAX_RETRIES) {
+      retries++;
+      scale *= 0.9;
+      console.error(
+        `Warning: ${basename(htmlPath)} has ${overflowResult.overflows.length} overflow(s); retry ${retries} scaling .content to ${scale.toFixed(2)}`
+      );
+      await page.evaluate((s) => {
+        const styleId = "__overflow_retry_style__";
+        let style = document.getElementById(styleId);
+        if (!style) {
+          style = document.createElement("style");
+          style.id = styleId;
+          document.head.appendChild(style);
+        }
+        // Keep the existing absolute + translateY(-50%) centering intact by
+        // appending the scale to that transform via a wrapper rule.
+        style.textContent = `
+          .content {
+            transform: translateY(-50%) scale(${s}) !important;
+            transform-origin: center center !important;
+          }
+        `;
+      }, scale);
+      // Let layout settle.
+      await new Promise((r) => setTimeout(r, 100));
+      overflowResult = await detectOverflow(page);
+    }
+
+    const overflowFinal = overflowResult.overflows;
+
     const outputPath = htmlPath.replace(/\.html$/i, ".png");
 
     // Screenshot the .slide element directly (if present) to capture exactly its
@@ -207,7 +324,13 @@ async function renderSlide(browser, htmlPath) {
       });
     }
 
-    return basename(outputPath);
+    return {
+      file: basename(outputPath),
+      overflow: overflowFinal.length > 0,
+      overflowElements: overflowFinal,
+      retries,
+      fontFallback: fallbacks.length > 0,
+    };
   } finally {
     await page.close();
   }
@@ -272,11 +395,13 @@ async function main() {
 
     const rendered = [];
     const failed = [];
+    const overflowed = [];
 
     for (let i = 0; i < results.length; i++) {
       const r = results[i];
       if (r.status === "fulfilled") {
         rendered.push(r.value);
+        if (r.value.overflow) overflowed.push(r.value.file);
       } else {
         failed.push(basename(htmlFiles[i]));
         console.error(
@@ -288,6 +413,7 @@ async function main() {
     const summary = {
       rendered: rendered.length,
       failed: failed.length,
+      overflowed: overflowed.length,
       outputDir: dirPath,
       files: rendered,
     };
