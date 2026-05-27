@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1080px; overflow: hidden; }
+
+.slide {
+  width: 1080px; height: 1080px;
+  position: relative;
+  font-family: 'Pretendard', sans-serif;
+  word-break: keep-all;
+  background: #0F172A;
+  color: #F8FAFC;
+}
+.content {
+  position: absolute;
+  top: 50%; left: 80px; right: 80px;
+  transform: translateY(-50%);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #3B82F6;
+  margin-bottom: 56px;
+}
+
+.list-item {
+  margin-bottom: 48px;
+  padding-left: 32px;
+  border-left: 3px solid rgba(59,130,246,0.25);
+}
+.list-item:last-child {
+  margin-bottom: 0;
+}
+.list-item.active {
+  border-left-color: #3B82F6;
+}
+
+.item-number {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #3B82F6;
+  margin-bottom: 12px;
+}
+.item-title {
+  font-family: 'Space Grotesk', 'Pretendard', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 14px;
+  line-height: 1.2;
+}
+.item-desc {
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(248,250,252,0.45);
+  max-width: 680px;
+}
+
+.page-number { position: absolute; bottom: 40px; right: 80px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.3); }
+.bottom-accent { position: absolute; bottom: 76px; left: 80px; width: 40px; height: 2px; background: #3B82F6; opacity: 0.4; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="content">
+    <div class="label">Three Trends Reshaping Dev</div>
+
+    <div class="list-item active">
+      <div class="item-number">01</div>
+      <div class="item-title">Agentic Coding</div>
+      <div class="item-desc">AI agents that plan, execute, and iterate on multi-file changes autonomously. Claude Code, Cursor, Codex — the IDE becomes a conversation.</div>
+    </div>
+
+    <div class="list-item">
+      <div class="item-number">02</div>
+      <div class="item-title">Prompt-Driven Architecture</div>
+      <div class="item-desc">Design docs and CLAUDE.md files replace boilerplate. You describe constraints, the AI writes the implementation.</div>
+    </div>
+
+    <div class="list-item">
+      <div class="item-number">03</div>
+      <div class="item-title">Disposable Prototypes</div>
+      <div class="item-desc">Ship an MVP in hours, not weeks. Kill bad ideas fast. The cost of experimentation is approaching zero.</div>
+    </div>
+  </div>
+  <div class="bottom-accent"></div>
+  <div class="page-number">04 / 05</div>
+</div>
+</body>
+</html>

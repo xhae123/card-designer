@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# User brand data (private per user)
+brands/
+
+# Generated output (PNGs)
+*.png
+!docs/*.png
+
+# Generated banner intermediate (rebuilt by docs/showcase/build-banner.mjs)
+docs/showcase/banner.html
+
+# OS
+.DS_Store
+
+# Lockfile (in scripts/)
+scripts/package-lock.json
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local

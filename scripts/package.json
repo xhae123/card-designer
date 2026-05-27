@@ -1,0 +1,14 @@
+{
+  "name": "brand-card-news-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "node render.js",
+    "validate": "node validate.js",
+    "setup": "npx puppeteer browsers install chrome"
+  },
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}

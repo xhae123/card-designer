@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1080px; overflow: hidden; }
+
+.slide {
+  width: 1080px; height: 1080px;
+  position: relative;
+  font-family: 'Pretendard', sans-serif;
+  word-break: keep-all;
+  background: #0F172A;
+  color: #F8FAFC;
+}
+.content {
+  position: absolute;
+  top: 50%; left: 80px; right: 80px;
+  transform: translateY(-50%);
+  text-align: center;
+}
+
+/* Star decoration */
+.star-field {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0.05;
+}
+
+.cta-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #3B82F6;
+  margin-bottom: 48px;
+}
+.cta-heading {
+  font-family: 'Space Grotesk', 'Pretendard', sans-serif;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -2.5px;
+  margin-bottom: 32px;
+}
+.cta-heading em {
+  font-style: normal;
+  color: #3B82F6;
+}
+.cta-sub {
+  font-size: 20px;
+  font-weight: 300;
+  color: rgba(248,250,252,0.45);
+  margin-bottom: 64px;
+  line-height: 1.6;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 20px 56px;
+  background: #3B82F6;
+  color: #F8FAFC;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+.cta-secondary {
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(248,250,252,0.3);
+  letter-spacing: 0.5px;
+}
+
+.handle {
+  position: absolute;
+  bottom: 48px;
+  left: 80px;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(248,250,252,0.2);
+  letter-spacing: 0.5px;
+}
+
+.page-number { position: absolute; bottom: 40px; right: 80px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.3); }
+.bottom-accent { position: absolute; bottom: 76px; left: 80px; width: 40px; height: 2px; background: #3B82F6; opacity: 0.4; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <svg class="star-field" viewBox="0 0 1080 1080">
+    <circle cx="120" cy="200" r="1.5" fill="#3B82F6"/>
+    <circle cx="340" cy="100" r="1" fill="#3B82F6"/>
+    <circle cx="560" cy="180" r="2" fill="#3B82F6"/>
+    <circle cx="780" cy="90" r="1.2" fill="#3B82F6"/>
+    <circle cx="950" cy="220" r="1.8" fill="#3B82F6"/>
+    <circle cx="200" cy="880" r="1.5" fill="#3B82F6"/>
+    <circle cx="420" cy="950" r="1" fill="#3B82F6"/>
+    <circle cx="680" cy="900" r="2" fill="#3B82F6"/>
+    <circle cx="850" cy="970" r="1.2" fill="#3B82F6"/>
+    <circle cx="100" cy="540" r="1" fill="#3B82F6"/>
+    <circle cx="980" cy="520" r="1.5" fill="#3B82F6"/>
+    <circle cx="450" cy="60" r="0.8" fill="#3B82F6"/>
+    <circle cx="720" cy="1020" r="0.8" fill="#3B82F6"/>
+  </svg>
+  <div class="content">
+    <div class="cta-label">Open Source</div>
+    <div class="cta-heading">Build beautiful<br>cards with <em>AI</em></div>
+    <div class="cta-sub">Card Designer is a free Claude Code skill that generates<br>publication-ready card news from a single prompt.</div>
+    <div class="cta-button">Star on GitHub</div>
+    <div class="cta-secondary">github.com/tomkim/card-designer</div>
+  </div>
+  <div class="handle">Made with Claude Code</div>
+  <div class="page-number">05 / 05</div>
+</div>
+</body>
+</html>
