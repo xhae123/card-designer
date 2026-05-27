@@ -29,7 +29,7 @@
 - **8 card roles** — cover, statement, detail, list, comparison, quote, data, CTA — each with distinct spatial composition
 - **Visual variety enforcement** — AI checks that consecutive slides differ in layout, not just text
 - **Self-verification pipeline** — anti-pattern checklist runs before any output reaches you
-- **Puppeteer rendering** — HTML slides rendered to PNG at native 1080x1080 resolution
+- **Puppeteer rendering** — slides rendered at 2× scale for retina sharpness (1080×1080 logical → 2160×2160 PNG output)
 - **Design reference system** — principles for typography, spacing, visual effects (halftone, glassmorphism, noise textures), and content writing
 
 ## Installation
@@ -167,18 +167,46 @@ When confidence reaches 0.8+, a value is considered an "established brand elemen
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Claude's official CLI)
-- Node.js 18+
+- Node.js 20+
 - Puppeteer (installed via `npm install` in `scripts/`)
+
+## Troubleshooting
+
+**Puppeteer Chrome download fails on install**
+The default browser install can hit network or permission errors. Re-run with the explicit command:
+```bash
+cd scripts && npx puppeteer browsers install chrome
+```
+
+**Generated cards have white edges / bleed**
+Fixed since v0.1.0 — the renderer now screenshots the `.slide` element directly. If you still see this, make sure your slide HTML wraps content inside `<div class="slide">…</div>`.
+
+**Korean text breaks mid-word**
+The skill enforces `word-break: keep-all` on every slide. If you've customized HTML and skipped this rule, add it back to `.slide` or `body`.
+
+**Fonts render as serif fallback in the PNG**
+Check that your `@import` URL is reachable. The renderer fetches CSS and inlines `woff2` files to `~/.cache/card-generator-fonts/`. Clear that directory to re-fetch if a CDN updated.
+
+**Skill doesn't appear in Claude Code**
+Verify the symlink: `ls -la ~/.claude/skills/card-designer` should point to your clone. Restart Claude Code after creating it.
 
 ## Contributing
 
-1. Fork the repo
-2. Create a feature branch
-3. Make your changes — focus on `references/` for design rules, `scripts/` for rendering
-4. Test with a real brand generation flow
-5. Submit a PR with before/after screenshots
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide. Quick version: design-rule improvements in `references/` and renderer fixes in `scripts/` are the highest-impact contributions. Always include before/after PNGs when changing visual output.
 
-Design principle contributions are especially welcome — the quality of generated cards is directly tied to the quality of the reference documents.
+By contributing, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Acknowledgments
+
+Inspired by — and built to push past the limitations of — earlier Claude Code card-news skills:
+
+- [bear2u/my-skills](https://github.com/bear2u/my-skills) — the first popular Korean card-news skills (Pillow-based, fixed layout)
+- [itchernetski/threads-carousel-claude-skill](https://github.com/itchernetski/threads-carousel-claude-skill) — design token taxonomy + slide-type system
+- [Hainrixz/open-carrusel](https://github.com/Hainrixz/open-carrusel) — dynamic HTML generation approach for Instagram carousels
+
+Anti-AI-slop design guidance draws from Anthropic's [frontend aesthetics cookbook](https://platform.claude.com/cookbook/coding-prompting-for-frontend-aesthetics).
+
+Korean typography defaults to [Pretendard](https://github.com/orioncactus/pretendard) by orioncactus.
 
 ## License
 
