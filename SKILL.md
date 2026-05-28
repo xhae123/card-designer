@@ -30,6 +30,7 @@ Always read and follow `references/persona.md`.
   SKILL.md                          # This file
   scripts/render.js                 # Puppeteer renderer (overflow detection + retry)
   scripts/validate.js               # HTML validator
+  scripts/png-to-svg.py             # PNG → pixel-perfect SVG via base64 embed (Protocol A intake)
   references/
     design-principles.md            # Index → 6 design files (canvas/typography/layout/color/card-types/golden-examples)
     anti-patterns.md                # Forbidden patterns checklist
@@ -37,14 +38,26 @@ Always read and follow `references/persona.md`.
     font-presets.md                 # Font presets + @import URLs
     visual-effects.md               # CSS/SVG visual effects patterns
     quality-gates.md                # Hard limits (NON-NEGOTIABLE)
-    asset-handling.md               # Logos / images / brand assets
+    asset-language.md               # WHEN/HOW assets, SVG-first rule, mood library index (always loaded)
+    asset-moods.md                  # 12-mood SVG technique deep-dives (lazy-loaded)
+    asset-handling.md               # Embedding, directory layout, intake protocol
+    onboarding-protocol.md          # 7-phase designer kickoff interview (loaded on onboarding)
     external-references.md          # Lazy-load WebFetch refs (3 triggers, 4-fetch cap)
   brands/
     {brand-name}/
-      taste-profile.json            # Brand taste profile
+      taste-profile.json            # Surface tokens (color, font, spacing) + assetLanguage
+      brand-master.md               # The constitution — voice, essence, vocabulary, idioms, patterns, anti-patterns
+      idioms.json                   # Machine-readable idiom library (emphasis, list, data, etc.)
+      evolution.md                  # Append-only brand evolution log (v1.0, v1.5, ...)
+      manifest.json                 # Asset index (id, tier, role, tags, usageCount)
       learnings.jsonl               # Learning log
-      assets/                       # Brand logos & images (see asset-handling.md)
-      output/{YYYYMMDD_HHmm}/      # Generated output
+      timeline.jsonl                # Session event timeline
+      assets/
+        logo.svg                    # primary brand mark (SVG-ized from any raster source)
+        signature/                  # tier 1: brand-identifying motifs (reuse byte-identical)
+        library/                    # tier 2: reusable spot SVGs (earned through use)
+        raw/                        # original user uploads (forensic, preserved)
+      output/{YYYYMMDD_HHmm}/       # Generated output
         slide_01.html
         slide_01.png
         ...
@@ -56,7 +69,7 @@ A brand grows through conversation. But it needs a minimum seed.
 
 ### Taste Profile
 
-Stored in `brands/{brand-name}/taste-profile.json`.
+Stored in `brands/{brand-name}/taste-profile.json`. Captures **surface tokens** only. Deep brand grammar (master vocabulary, idioms, composition patterns) lives in `brand-master.md` and `idioms.json`.
 
 ```json
 {
@@ -68,7 +81,8 @@ Stored in `brands/{brand-name}/taste-profile.json`.
     "voice": "",
     "industry": "",
     "targetAudience": "",
-    "instagramHandle": ""
+    "instagramHandle": "",
+    "tagline": ""
   },
   "color": {
     "background": { "value": "#FAFAFA", "confidence": 0.5 },
@@ -88,9 +102,19 @@ Stored in `brands/{brand-name}/taste-profile.json`.
     "surfaceMode": { "value": "light", "confidence": 0.5 },
     "layoutTendency": { "value": "minimal", "confidence": 0.5 },
     "cardDimensions": { "value": "1080x1080", "confidence": 0.5 }
+  },
+  "assetLanguage": {
+    "mood": { "value": "toss-flat", "confidence": 0.5 },
+    "lightSource": { "value": "top-left-30", "confidence": 0.5 },
+    "strokeStance": { "value": "solid-fill", "confidence": 0.5 },
+    "geometry": { "value": "rounded", "confidence": 0.5 },
+    "useRasterTexture": { "value": false, "confidence": 0.8 },
+    "signatureMotifIds": []
   }
 }
 ```
+
+**`assetLanguage` fields** — see [`references/asset-language.md`](./references/asset-language.md) §8 for value enums and rules. `signatureMotifIds` lists `manifest.json` asset IDs marked `tier: signature`. The full mood enum lives in [`references/asset-moods.md`](./references/asset-moods.md).
 
 **Confidence rules:**
 - `0.5` = initial default (guess)
@@ -144,62 +168,30 @@ Once a brand is selected, always display at the start of the session: **"현재 
 
 **Then run Session Context Recovery** (see "Session Context Recovery" section below) before moving to Step [2]. Skip for brand-new brands with no timeline.jsonl yet.
 
-### [1] Brand Onboarding (first visit)
+### [1] Brand Onboarding (first visit) — ★ THE MOAT
 
-**"Show and align together" approach. Visual conversation comes before questions.**
+Brand onboarding is the most important conversation in this skill. Surface tokens (color, font) are easy to copy. **Brand grammar** — master vocabulary, visual idioms, composition patterns, voice-visual coherence — is what makes a brand inimitable. This depth is captured here.
 
-#### Phase 1: Minimal Info Gathering (1 turn)
+**Delegate to the full protocol:** [`references/onboarding-protocol.md`](./references/onboarding-protocol.md)
 
-Ask the following all at once in the first message, keeping it light:
+Always load `onboarding-protocol.md` when entering this step. Also load `asset-language.md` (for asset rules) and lazy-load `asset-moods.md` when reaching Phase 3 mood shotgun.
 
-"새 브랜드를 만들게요. 몇 가지만 알려주세요:
-- **브랜드/채널 이름**은?
-- **어떤 분야**인가요? (tech, 금융, F&B, 패션, 교육, 라이프스타일...)
-- **톤/분위기**는? (전문적 / 친근한 / 감성적 / 임팩트)
-- **인스타 핸들** 있으면 같이 알려주세요
+**Seven-phase summary:**
 
-짧게 답해도 됩니다. 나머지는 제가 샘플 카드를 만들어서 보여드릴게요."
+| Phase | Purpose | Output files |
+|---|---|---|
+| 0 | Detect path (Existing Brand forensic vs New Brand discovery) | (none) |
+| 1 | Discovery — name, essence, voice, target | `taste-profile.json` meta + `brand-master.md` Essence/Voice |
+| 2 | Forensics on existing assets (SVG-ize + extract 5 dimensions) | `assets/raw/`, `assets/logo.svg`, `assets/signature/*.svg`, `manifest.json` initial entries |
+| 3 | Mood lock (SHOTGUN for new brand, INFER for existing) | `taste-profile.json` assetLanguage fields |
+| 4 | **Master vocabulary + 8 universal idioms + composition patterns + voice-visual coupling** (the longest, most load-bearing phase — "the moat") | `idioms.json`, `brand-master.md` Master Vocabulary / Idioms / Composition / Coupling sections, more SVGs in `signature/` |
+| 5 | 3-slide sample series validation + iteration | (file updates from iteration) |
+| 6 | Anti-pattern capture (brand-specific forbiddens) | `brand-master.md` Anti-patterns + `learnings.jsonl` rule entries |
+| 7 | Synthesis & commit | Final `brand-master.md`, `evolution.md` v1.0 entry, `timeline.jsonl` `onboarded` event |
 
-Once the user responds → generate a taste-profile.json draft with only that information.
-For unknown fields, use reasonable defaults based on the industry.
+**Persistence rule:** "집요하게 조사" — do not let the user skip the depth. If they push for fast onboarding, push back once. Phases 3 and 7 are non-skippable. See protocol §"Skip rules" for compression allowances.
 
-#### Phase 2: Design Shotgun — Present 3 Directions (core)
-
-Using only the user's industry/name info, generate **3 sample cover cards with completely different visual languages**. Optionally consult [`references/external-references.md`](./references/external-references.md) per Lazy-Load trigger #1 before generating the directions, to seed visual language with real-world references.
-
-The 3 cards must differ not just in color, but in their entire **visual system** — background treatment, decorative elements, spatial metaphors. Reference `references/visual-effects.md` for concrete CSS patterns.
-
-| | Direction A: Impact | Direction B: Minimal | Direction C: Modern |
-|---|---|---|---|
-| **Background** | Halftone dot pattern + dark | Clean solid / subtle gradient | Noise texture + color tint |
-| **Decoration** | Pseudo-3D objects, glossy badges | None. Pure typography + whitespace | SVG illustrations + accent lines |
-| **Structure** | Folder/document metaphor cards | Flat layout, large type | Glassmorphism cards |
-| **Typography** | Bold + geometric, highlighted text | Light weight, generous spacing | Medium weight + serif mix |
-| **Reference style** | 멋사/Likelion style | 토스/Toss style | Startup/Product Hunt style |
-
-Each direction uses DIFFERENT CSS techniques from `visual-effects.md`:
-- A: halftone bg (§1), highlighted text boxes (§6), folder metaphor (§3)
-- B: no effects — pure typography hierarchy, whitespace, color
-- C: noise texture (§4), glassmorphism (§5), SVG accent shapes (§7)
-
-Generation method: generate HTML for the same dummy content (brand name + "첫 번째 카드뉴스 시리즈") in 3 visual languages, each using ≥2 effects from `visual-effects.md` (except B). Render all 3, `open` them simultaneously, then ask: "A, B, C 중 어떤 방향이 마음에 드세요? / Which direction? Mixing is fine ('A but brighter')."
-
-**Why 3 visual languages:** Color and font are surface-level differences. Visual language (halftone vs glassmorphism vs pure typography) is what truly differentiates a brand. A user who picks A gets a completely different design system than one who picks C.
-
-#### Phase 3: Selection → Fine-tuning
-
-Once the user selects a direction:
-1. Generate taste-profile.json draft for that direction
-2. Generate **1 more card** in that direction (real brand feel, not dummy)
-3. Fine-tune via feedback ("좀 더 밝게" → bg color; "폰트가 딱딱해" → font; "색이 마음에 안 들어" → palette; "좋아요!" → Phase 4) and regenerate each time
-4. Loop feedback → edit → regenerate until satisfied; update taste-profile.json with each edit
-
-**Core principle:** Don't discover taste through questions — show results and adjust based on reactions.
-People answer "이 폰트 어때요?" more precisely than "어떤 폰트를 원하세요?"
-
-#### Phase 4: Onboarding Complete
-
-Once the user approves the sample: save final taste-profile.json, log onboarding to learnings.jsonl, say "브랜드 '{name}' 등록 완료! 이제 주제를 주시면 카드뉴스를 만들게요." (or English equivalent), and `open` the approved sample again.
+**Why this is the moat:** A competitor can copy this skill, but they cannot copy a user's accumulated `brand-master.md` + `idioms.json` + `manifest.json` + 20 brand SVGs in `signature/`/`library/`. Stickiness is the user's accumulated brand assets, not the skill itself.
 
 ### [2] Input Analysis
 
@@ -224,36 +216,88 @@ Analyze user input (trigger detection is language-agnostic — match intent, not
     - references/font-presets.md
     - references/visual-effects.md
     - references/quality-gates.md
-    - references/asset-handling.md
+    - references/asset-language.md          ★ WHEN/HOW assets, SVG-first rule, mood index
+    - references/asset-handling.md          ★ Embedding rules (inline SVG only, no relative paths)
+    - references/visual-critique.md         ★ The missing eye — 9-criterion structured review
 
     Per-slide (load only the relevant role section):
     - references/card-types.md
+
+    Lazy-load (on trigger only):
+    - references/asset-moods.md             when generating a fresh SVG in the brand's mood (max 2 loads/session)
+    - references/external-references.md     on 3 specific triggers (see that file)
+    - references/onboarding-protocol.md     only during Brand Onboarding
 
     For the first slide of a new series (or quality bar check):
     - references/golden-examples.md
 
 [4] Load Brand Context
-    - brands/{brand}/taste-profile.json
+    - brands/{brand}/taste-profile.json               (surface tokens + assetLanguage)
+    - brands/{brand}/brand-master.md                  ★ THE CONSTITUTION — internalize entirely
+    - brands/{brand}/idioms.json                      ★ idiom snippets for emphasis/list/data/etc.
+    - brands/{brand}/manifest.json                    ★ asset index (signature + library)
     - brands/{brand}/learnings.jsonl (last 20 lines)
     - ★ Load ALL `type: rule` entries from learnings.jsonl (full scan, not just last 20)
       → Apply these rules to layout/typography/color decisions BEFORE writing HTML.
       → Rules with `applies_to: ["all slides"]` are non-negotiable defaults; never ask the user about them again.
+    - ★ Internalize `brand-master.md` Anti-patterns section as hard prohibitions for this session.
+
+[4.5] ★ Topic-Mood Alignment Check (asset-language.md §6.5 Rule 6)
+    Silently check: does the user's topic align with the brand's locked mood?
+      - Aligned (kawaii brand + recruitment post; fintech brand + product launch) → proceed
+      - Mismatch (kawaii brand + memorial/serious; fintech brand + festival) →
+        SURFACE TO USER, offer two paths:
+          (A) one-series exception (break mood for this series, restore after)
+          (B) force-fit (keep mood, accept tonal friction)
+        Let user choose. Log to learnings.jsonl.
+    For aligned topics, no user interruption.
 
 [5] Content Analysis & Structuring
     - Extract key messages from the user's topic
     - Determine narrative arc: Hook → Value → CTA
     - Decide slide count (default 5-7, max 10)
     - Assign roles per slide (see Card Roles below)
-    - If the user mentions a logo, brand image, or external graphic asset,
-      consult [`references/asset-handling.md`](./references/asset-handling.md)
-      and ask ONCE where the asset is. Copy it into brands/{name}/assets/ and
-      reuse across the entire series — never re-ask per slide.
+    - User-provided assets: SVG-ize per asset-handling.md §1 protocol on first mention,
+      save to raw/ + assets/, register in manifest.json. Never re-ask per slide.
 
 [6] Copywriting
     - Apply references/content-principles.md rules
     - 1 message per slide, 15-30 character body text
     - Cover: hook within 8 words
     - CTA: specific call-to-action
+
+[6.5] Asset Planning (★ required — see asset-language.md §11 + §6.5 Discipline vs Flexibility)
+    For EACH slide, decide before HTML:
+      1. Slide role → look up asset slot in asset-language.md §3 matrix.
+      2. Need an asset? Per role + per series rhythm (alternation, not wallpaper).
+      3. ★ Context-fit check (asset-language.md §6.5 Rule 3): does this slide's
+         CONTENT actually call for the signature motif? Folder-card on a single quote
+         slide = NO. Mascot on a serious announcement = NO. If context-fit fails → drop.
+      4. ★ Series budget check (asset-language.md §6.5 Rule 2): would using this asset
+         exceed the per-series cap (mascot ≤2, signature container ≤3, decorative motif
+         ≤2, emphasis idiom ≤3×, same idiom ≤4×)? If yes → drop OR generate fresh variant.
+      5. Asset source priority (only after fit + budget pass):
+         (a) signature/ fit? → reuse byte-identical
+         (b) library/ fit? → reuse, increment usageCount
+         (c) neither → generate fresh inline SVG in brand assetLanguage.mood
+             (lazy-load asset-moods.md NOW if not yet loaded this session)
+      6. Idiom lookup: check idioms.json for the slide's needs (emphasis / list-item /
+         data-anchor / divider / container / callout / success-feel / background-texture).
+         Treat `enforcement: default/suggestion` idioms as starting points, override when better.
+      7. ★ Fresh-element imperative (§6.5 Rule 4): does this topic introduce a new
+         concept not yet expressible? If yes → generate a NEW library SVG in brand mood,
+         save to library/, register in manifest.json. The brand grows every series.
+      8. Apply placement rules (asset-language.md §3 + §5).
+      9. Cohesion check (light source, palette, stroke stance, geometry).
+     10. ★ Deliberate-deviation log (§6.5 Rule 5): if you broke any `default` rule,
+         write `type: override` to learnings.jsonl with rationale.
+
+    Write the per-slide asset plan in plain text BEFORE writing HTML. Example:
+      "Slide 3 (detail, type-leading, categorical content): folder-card container OK
+       (3rd use, hits cap — no more containers after this slide). Right-edge accent =
+       paperclip (2nd use, at cap). Emphasis idiom = black-box on '핵심 키워드' (1st of 3).
+       No mascot (mismatch — serious content). NEW library asset: icon-calendar.svg
+       (topic introduces schedule concept, not yet in library)."
 
 [7] Visual Composition Design (★ required before writing HTML)
     Design the visual composition in text for each slide:
@@ -297,12 +341,41 @@ Analyze user input (trigger detection is language-agnostic — match intent, not
 [10] Rendering
     - node {SKILL_DIR}/scripts/render.js {output-dir}
 
-[10.5] Visual Verification (check rendered output)
+[10.5] Visual Verification (technical checks — clipping, font load)
     - Open rendered PNGs with the Read tool. Verify: no text clipping, fonts
-      loaded (no serif fallback), sufficient whitespace, slide layouts actually
-      differ (★), cover is strongest, looks professional.
-    - On issues: fix HTML → re-render → re-check. After 2 failed attempts,
-      show user with noted issues.
+      loaded (no serif fallback), no overflow elements, no blank slides.
+    - These are TECHNICAL failures. If found: fix HTML → re-render → re-check.
+      After 2 failed attempts on technical issues, show user with noted issues.
+
+[10.7] ★ Visual Critique (the missing eye — see references/visual-critique.md)
+    The 9-criterion structured aesthetic review. Catches what anti-patterns.md
+    cannot: ugliness, hierarchy mush, color clash, AI-smell, brand drift.
+
+    For EACH rendered PNG (read it again):
+      Score 9 criteria as pass/minor/fail:
+        1. Hierarchy clarity (eye lands on ONE element first)
+        2. Color harmony (no clash, accent restrained)
+        3. Breathing room (≥40% negative space)
+        4. Typography contrast (weight ladder)
+        5. Cohesion within carousel (sibling feel)
+        6. Cover dominance (cover slide only)
+        7. Asset balance (right size, no competition, context-fit honored)
+        8. AI-smell (over-symmetry, dead-center, uniform spacing tells)
+        9. Brand alignment (brand-master.md voice + idioms + composition + anti-patterns)
+
+      Write the critique inline (block per slide). Be specific.
+
+      Verdict per slide:
+        0 fails AND ≤2 minors      → ship
+        0 fails AND 3-4 minors     → polish (1 retry with specific fix list)
+        1 fail OR ≥5 minors        → retry (max 2 retries)
+        ≥2 fails                   → retry-hard (max 2; then ship-with-concerns)
+        Cover fails criterion 6    → retry-cover (non-negotiable)
+
+      Series-level halt: if ≥40% of slides need retry, the issue is brand-grammar
+      level — halt, surface to user, do not retry individually.
+
+      Retry budget per slide: 2. After 2 retries, ship with concerns to user.
 
 [11] Present Preview
     - Show PNGs, explain design intent in 1-2 sentences, and open all PNGs:
@@ -672,7 +745,11 @@ for all tokens (weekly decay, check lastUpdated):
 | `references/font-presets.md` | Font recommendations & @import URLs | During font selection |
 | `references/visual-effects.md` | CSS/SVG visual effects (halftone, 3D, glass, etc.) | During HTML generation |
 | `references/quality-gates.md` | Hard limits — char caps, series structure, visual ceilings | Step [8.25] before self-verification |
-| `references/asset-handling.md` | Logo/image handling, base64 vs path, overlay rules | When user mentions assets |
+| `references/asset-language.md` | WHEN/HOW assets, SVG-first rule, asset sense by slide role, rhythm, composition, cohesion, mood index, library structure, manifest schema, planning workflow | Every generation (always loaded) |
+| `references/asset-moods.md` | 12-mood SVG technique deep-dives (toss-flat, sticker-kawaii, iso-3d, ...) with copy-paste snippets | Lazy-load on Phase 3 onboarding shotgun OR fresh SVG generation; max 2 loads/session |
+| `references/asset-handling.md` | Inline SVG enforcement, intake protocol (raster → SVG-ize), directory layout, manifest maintenance | Every generation |
+| `references/visual-critique.md` | 9-criterion structured aesthetic review (hierarchy/color/breathing/type/cohesion/cover-dominance/asset/AI-smell/brand) with retry logic | Every generation, Step [10.7] |
+| `references/onboarding-protocol.md` | 7-phase designer kickoff interview with persistence rules ("집요하게 조사"); produces brand-master.md, idioms.json, evolution.md | Only during Brand Onboarding (first visit or new brand) |
 | `references/external-references.md` | Top-5 fetchable sites + 3 lazy-load triggers + `inspiration_seeds` schema | On demand (lazy-load triggers) |
 
 ---
