@@ -134,11 +134,14 @@ card-designer/
 
 ### Visual Critique Loop — 추함을 잡는 단계
 
-`references/visual-critique.md` + `SKILL.md` Step [10.7]. 렌더 직후, 사용자에게 보이기 전 9개 차원 구조화 비평:
+두 단계로 작동해요.
 
+**[10.7] Self-Critique (항상 실행).** `references/visual-critique.md`. 9개 차원 구조화 비평:
 hierarchy / color / breathing / typography / cohesion / cover-dominance / asset-balance / AI-smell / brand-alignment
 
-각각 `pass/minor/fail` 채점. `1 fail` 또는 `5+ minors` 면 retry (슬라이드당 max 2회). 시리즈 40%가 retry면 brand-grammar 문제로 보고 사용자에게 surface. `anti-patterns.md`가 잡지 못하는 "잘 안 빠진 카드"를 막는 단계.
+각각 `pass/minor/fail` 채점. `1 fail` 또는 `5+ minors` 면 retry (슬라이드당 max 2회). 시리즈 40%가 retry면 brand-grammar 문제로 보고 사용자에게 surface.
+
+**[11.5] Designer Reviewer (opt-in).** `references/designer-reviewer.md`. self-critique의 구조적 blind spot(자기 작업을 자기가 평가)을 외부 시선으로 보완해요. 사용자가 동의하면 시니어 브랜드 디자이너 페르소나 에이전트가 렌더된 PNG를 cold로(생성 컨텍스트 없이) 리뷰. gstack의 codex review 패턴. 30-60초 추가 비용, 고밀도 폴리시가 필요할 때만 사용.
 
 ### Discipline vs Flexibility
 
@@ -166,7 +169,7 @@ hierarchy / color / breathing / typography / cohesion / cover-dominance / asset-
 
 이 스킬은 v1.0이에요. 작동하지만 다음 문제들이 있어요.
 
-- **Visual critique loop는 self-critique 기반.** Step [10.7]에서 9차원 채점을 하지만 모델이 자기 작업을 자기가 평가하는 구조라서 blind spot이 있어요. 외부 critic agent (예: codex review, 별도 Claude 인스턴스)와 결합하는 게 다음 단계예요.
+- **Visual critique은 두 층.** Self-critique [10.7]가 항상 돌고, Designer reviewer [11.5]가 opt-in으로 외부 시선을 더해요. self-critique의 blind spot은 reviewer로 보완하지만, 두 층 모두 객관 평가가 아닌 모델 판단이라 사용자 최종 검수는 여전히 load-bearing.
 - **12-mood이 출발점일 뿐이에요.** sticker-kawaii + iso-3d-gradient를 섞는 식의 하이브리드는 다루지만, 12개 카테고리에 잘 안 떨어지는 결(예: 한국적 모던, 의료 신뢰감, 종교/의식)은 강제 매핑돼요. Mood library는 사용자 피드백으로 확장돼야 해요.
 - **Onboarding이 길어요.** 7-phase는 15-20분 걸려요. 사용자가 brand grammar의 가치를 모르는 첫 만남에서는 부담스러울 수 있어요. "집요하게 조사" 규칙은 푸시백 1회 후 압축을 허용하지만, 그러면 grammar 깊이가 얕아져요. 트레이드오프 미해결.
 - **Idiom 자동 추출이 없어요.** `idioms.json`은 onboarding Phase 4에서 사람이 디자이너(AI)와 같이 정의해요. 기존 자산에서 idiom을 자동 패턴 마이닝하는 기능은 없어요.
@@ -189,15 +192,15 @@ hierarchy / color / breathing / typography / cohesion / cover-dominance / asset-
 - Topic-Mood Alignment Check (Step [4.5]) + Asset Planning (Step [6.5])
 - **Two-protocol asset intake** — Protocol A (사용자 PNG → pngquant + base64-embed SVG, 픽셀 완벽) + Protocol B (AI 신규 모티프 → 손-크래프트 pure SVG). `scripts/png-to-svg.py` 헬퍼 추가.
 - **Visual Critique Loop** (Step [10.7]) — 9차원 구조화 비평 + retry 로직 (`references/visual-critique.md`).
+- **Opt-in Designer Reviewer** (Step [11.5]) — 시니어 브랜드 디자이너 페르소나 에이전트가 렌더된 PNG를 cold 리뷰. gstack 패턴, 사용자 트리거 (`references/designer-reviewer.md`).
 
 **다음 우선순위:**
 
-1. 외부 critic agent 결합 — self-critique의 blind spot 보완 (codex review 또는 별도 Claude 인스턴스).
-2. Mood library 확장 — 사용자 작업에서 새 mood 결을 발견했을 때 brand의 `assetLanguage.mood` 값에 커스텀 mood 등록 경로.
-3. Onboarding 압축 path — grammar 깊이를 유지하면서 5-7분 안에 끝내는 모드 (Phase 2/4를 후속 세션으로 미루기).
-4. Idiom 자동 추출 — 기존 카드뉴스 이미지에서 emphasis/list/divider 패턴 자동 인식.
-5. Vectorizer.AI API 통합 — Protocol A의 옵션 escape hatch ($0.20/장, 진짜 path-편집 가능 vector 필요할 때).
-6. 다른 카드 포맷 — 1:1 외에 4:5, 9:16 (스토리), 가로형 지원.
+1. Mood library 확장 — 사용자 작업에서 새 mood 결을 발견했을 때 brand의 `assetLanguage.mood` 값에 커스텀 mood 등록 경로.
+2. Onboarding 압축 path — grammar 깊이를 유지하면서 5-7분 안에 끝내는 모드 (Phase 2/4를 후속 세션으로 미루기).
+3. Idiom 자동 추출 — 기존 카드뉴스 이미지에서 emphasis/list/divider 패턴 자동 인식.
+4. Vectorizer.AI API 통합 — Protocol A의 옵션 escape hatch ($0.20/장, 진짜 path-편집 가능 vector 필요할 때).
+5. 다른 카드 포맷 — 1:1 외에 4:5, 9:16 (스토리), 가로형 지원.
 
 ---
 

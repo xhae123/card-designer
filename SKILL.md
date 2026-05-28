@@ -377,6 +377,30 @@ Analyze user input (trigger detection is language-agnostic — match intent, not
 
       Retry budget per slide: 2. After 2 retries, ship with concerns to user.
 
+[11.5] ★ Optional Designer Review (opt-in — see references/designer-reviewer.md)
+    After self-critique [10.7] returns `ship`, ask the user via AskUserQuestion:
+      "디자이너 리뷰어 돌릴까요? 외부 시선으로 한 번 더 체크해요."
+      (A) 네, 돌려주세요  (B) 그냥 보여주세요
+
+    If YES → spawn Agent with senior brand designer persona (designer-reviewer.md
+    has the exact persona + brief + output format). Agent reads rendered PNGs
+    cold (no generation context) and returns:
+      1. Overall verdict sentence
+      2. Per-slide concrete issues
+      3. 1-3 series-level patterns
+      4. One thing done well (calibration against fawning)
+
+    Surface findings to user, ask which to apply:
+      (A) all  (B) series-level only  (C) specific slides  (D) ship as-is with notes
+
+    Apply chosen fixes, re-render, re-run [10.7], cap at 2 review passes per series.
+    Log outcome to learnings.jsonl as type:designer-review.
+
+    Skip this step when:
+      - [10.7] returned retry-hard (slides need fixing, not reviewing)
+      - Small 1-2 slide iteration on previously-approved series
+      - User declined twice already this session
+
 [11] Present Preview
     - Show PNGs, explain design intent in 1-2 sentences, and open all PNGs:
       open {output-dir}/slide_01.png {output-dir}/slide_02.png ...
@@ -749,6 +773,7 @@ for all tokens (weekly decay, check lastUpdated):
 | `references/asset-moods.md` | 12-mood SVG technique deep-dives (toss-flat, sticker-kawaii, iso-3d, ...) with copy-paste snippets | Lazy-load on Phase 3 onboarding shotgun OR fresh SVG generation; max 2 loads/session |
 | `references/asset-handling.md` | Inline SVG enforcement, intake protocol (raster → SVG-ize), directory layout, manifest maintenance | Every generation |
 | `references/visual-critique.md` | 9-criterion structured aesthetic review (hierarchy/color/breathing/type/cohesion/cover-dominance/asset/AI-smell/brand) with retry logic | Every generation, Step [10.7] |
+| `references/designer-reviewer.md` | Opt-in external designer reviewer agent — senior brand designer persona, cold review of rendered PNGs, gstack pattern | Step [11.5] when user opts in |
 | `references/onboarding-protocol.md` | 7-phase designer kickoff interview with persistence rules ("집요하게 조사"); produces brand-master.md, idioms.json, evolution.md | Only during Brand Onboarding (first visit or new brand) |
 | `references/external-references.md` | Top-5 fetchable sites + 3 lazy-load triggers + `inspiration_seeds` schema | On demand (lazy-load triggers) |
 
