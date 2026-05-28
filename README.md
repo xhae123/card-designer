@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="docs/hero.png" alt="card-designer" width="800"/>
-
 <h1>card-designer</h1>
 
 <p><strong>Carousel generators forget your brand the moment you close the tab.<br/>This one remembers — and gets sharper every session.</strong></p>
@@ -15,7 +13,7 @@
 ## What you ship
 
 <p align="center">
-  <img src="docs/showcase/banner.png" alt="showcase carousel" width="900"/>
+  <img src="docs/hero.png" alt="showcase carousel" width="900"/>
 </p>
 
 Every run produces **two artifacts**, not one:
