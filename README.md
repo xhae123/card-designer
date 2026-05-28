@@ -6,7 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/Claude%20Code-skill-7C3AED" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/node-%E2%89%A520-3B82F6" alt="Node 20+">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.3.0-22D3EE" alt="Version 0.3.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.4.0-22D3EE" alt="Version 0.4.0"></a>
 </p>
 
 ![Card Designer Banner](docs/hero.png)
@@ -141,11 +141,19 @@ card-designer/
     validate.js                   # HTML validation
     package.json                  # Dependencies (puppeteer)
   references/
-    design-principles.md          # Layout, color, typography rules
+    design-principles.md          # Index → points to canvas/typography/layout/color/card-types/golden-examples
+    canvas.md                     # Canvas + CSS reset + SVG constraints
+    typography.md                 # Size scale, Korean rules, weights, fonts
+    layout.md                     # Spacing, alignment, sequence, narrative
+    color.md                      # Color rules + palette reference
+    card-types.md                 # Per-role spatial composition + CSS
+    golden-examples.md            # 4 reference HTML slides (quality bar)
     anti-patterns.md              # Forbidden patterns checklist
-    content-principles.md         # Copywriting guidelines
+    content-principles.md         # Voice, hooks, narrative, Korean style
     font-presets.md               # Font recommendations + @import URLs
     visual-effects.md             # CSS/SVG effects (halftone, glass, noise, etc.)
+    quality-gates.md              # Hard limits (character caps, structure)
+    asset-handling.md             # Logo/image handling
   brands/                         # [gitignored] User brand data
     {brand-name}/
       taste-profile.json          # Brand identity with confidence scores

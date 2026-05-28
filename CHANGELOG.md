@@ -5,6 +5,19 @@ All notable changes to Card Designer will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-05-28
+
+### Changed
+
+- Reference architecture refactor: `design-principles.md` (1700+ lines, 13 sections) split into 6 focused files (`canvas.md`, `typography.md`, `layout.md`, `color.md`, `card-types.md`, `golden-examples.md`) with a thin index. Per-file navigation and AI context loading is now precise instead of "load the whole brick."
+- Golden examples now use English content (parallel meaning preserved, `word-break: keep-all` rule retained for Korean compatibility).
+- `content-principles.md` scoped to voice / hook / narrative / Korean style. Hard character caps consolidated in `quality-gates.md` only. Cross-references added between the two files.
+- Each new reference file opens with a mission statement and includes 1-2 anti-examples for memorability.
+
+### Removed
+
+- The previous monolithic `design-principles.md` content layout. Existing brand profiles and outputs are unaffected.
+
 ## [0.3.0] — 2026-05-28
 
 ### Added

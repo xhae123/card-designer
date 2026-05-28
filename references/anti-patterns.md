@@ -84,7 +84,7 @@
 ### C10. Adaptive Sizing
 - [ ] Is a sufficiently large font-size used for short text (8 chars or fewer)?
 - A single-line title at 32px or below wastes space
-- **On failure**: adjust to appropriate size for text length (see design-principles.md 2.1)
+- **On failure**: adjust to appropriate size for text length (see typography.md §1 Size Scale)
 
 ### C11. AI Slop Fonts
 - [ ] Are Inter, Roboto, Arial, Helvetica NOT used?
@@ -162,7 +162,7 @@
 ### G22. Layout Variation
 - [ ] Do NO two consecutive slides have the **exact same layout**?
 - Repeating the same layout causes visual fatigue
-- **On failure**: change to a different card type pattern (see design-principles.md section 5)
+- **On failure**: change to a different card type pattern (see card-types.md)
 
 ### G23. Narrative Structure
 - [ ] Does it follow the Hook, Context, Value Delivery, Summary/CTA sequence?

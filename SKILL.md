@@ -31,10 +31,10 @@ Always read and follow `references/persona.md`.
   scripts/render.js                 # Puppeteer renderer (overflow detection + retry)
   scripts/validate.js               # HTML validator
   references/
-    design-principles.md            # Design principles
-    anti-patterns.md                # Forbidden patterns
-    content-principles.md           # Copywriting principles
-    font-presets.md                 # Font presets
+    design-principles.md            # Index → 6 design files (canvas/typography/layout/color/card-types/golden-examples)
+    anti-patterns.md                # Forbidden patterns checklist
+    content-principles.md           # Voice, hooks, narrative, Korean style
+    font-presets.md                 # Font presets + @import URLs
     visual-effects.md               # CSS/SVG visual effects patterns
     quality-gates.md                # Hard limits (NON-NEGOTIABLE)
     asset-handling.md               # Logos / images / brand assets
@@ -225,13 +225,23 @@ Analyze user input:
 
 ```
 [3] Load References
-    - references/design-principles.md
+    Always load:
+    - references/canvas.md
+    - references/typography.md
+    - references/layout.md
+    - references/color.md
     - references/anti-patterns.md
     - references/content-principles.md
     - references/font-presets.md
     - references/visual-effects.md
     - references/quality-gates.md
     - references/asset-handling.md
+
+    Per-slide (load only the relevant role section):
+    - references/card-types.md
+
+    For the first slide of a new series (or quality bar check):
+    - references/golden-examples.md
 
 [4] Load Brand Context
     - brands/{brand}/taste-profile.json
@@ -265,7 +275,7 @@ Analyze user input:
 
 [8] HTML/CSS Generation
     - Apply taste-profile tokens (colors, fonts, spacing)
-    - Follow design-principles.md rules
+    - Follow canvas.md / typography.md / layout.md / color.md rules
     - Each slide: complete HTML document, 1080×1080px
     - ★ Must apply per-slide design variety rules (see "Design Variety" section below)
 
@@ -334,21 +344,21 @@ Analyze user input:
 1. **Each Card Role = distinct spatial composition.** `cover ≡ detail` layout, or `data ≡ list` layout, is a failure. Different text is NOT different layout.
 2. **Cover is the strongest slide.** Largest typography, boldest colors, fewest elements — it must clearly out-weight the others in the Instagram grid thumbnail.
 3. **Vary background treatment subtly across slides.** All-identical solid color = monotonous. Use minor brightness shifts (e.g., `#0F172A` → `#111827`) or restrict gradient to the cover.
-4. **Use visual anchors aggressively.** Numbers → HUGE (80–140px, design-principles.md §12.4). List numerals → large, accent color. Dividers → visible thickness. Whitespace → concentrated to create rhythm.
+4. **Use visual anchors aggressively.** Numbers → HUGE (80–140px, card-types.md §4 Stats/Data). List numerals → large, accent color. Dividers → visible thickness. Whitespace → concentrated to create rhythm.
 5. **Think magazine spread, not div container.** Whitespace is intentional, not leftover.
 
-### Layout Variety Check (refer to design-principles.md Section 12 patterns)
+### Layout Variety Check (refer to card-types.md patterns)
 
 | Card Role | Reference CSS Pattern | Spatial Characteristics |
 |---|---|---|
-| `cover` | 12.1 Cover | Left or center, minimal elements, maximum impact |
-| `statement` | 12.5 Quote variant | Center, large whitespace, single sentence |
-| `detail` | 12.2 Body | Left, label→title→divider→body hierarchy |
-| `list` | 12.3 List | Left, number emphasis, vertical rhythm |
-| `comparison` | 12.6 Comparison | 2-column, symmetric structure |
-| `quote` | 12.5 Quote | Center, quotation mark decoration, attribution |
-| `data` | 12.4 Stats | Huge number as hero, small supporting text |
-| `cta` | 12.7 CTA | Center, call-to-action, handle/brand mark |
+| `cover` | card-types.md §1 Cover | Left or center, minimal elements, maximum impact |
+| `statement` | card-types.md §5 Quote variant | Center, large whitespace, single sentence |
+| `detail` | card-types.md §2 Body | Left, label→title→divider→body hierarchy |
+| `list` | card-types.md §3 List | Left, number emphasis, vertical rhythm |
+| `comparison` | card-types.md §6 Comparison | 2-column, symmetric structure |
+| `quote` | card-types.md §5 Quote | Center, quotation mark decoration, attribution |
+| `data` | card-types.md §4 Stats | Huge number as hero, small supporting text |
+| `cta` | card-types.md §7 CTA | Center, call-to-action, handle/brand mark |
 
 **No more than 3 consecutive slides with the same alignment (left/center).** Insert a differently aligned slide in between.
 
@@ -356,24 +366,12 @@ Analyze user input:
 
 ## Card Roles
 
-Each slide has one of the roles below. The role determines the layout and information density.
-
-| Role | Purpose | Text Density | Layout Characteristics |
-|---|---|---|---|
-| `cover` | Grab attention (hook) | Minimal (within 8 words) | Large typography, strong visual element |
-| `statement` | Core claim/declaration | Low (1 sentence) | Center-aligned, maximized whitespace |
-| `detail` | Deliver information/explanation | Medium (2-3 sentences) | Left-aligned, clear hierarchy |
-| `list` | Enumerate items | Medium-high | Numbers/bullets, grid possible |
-| `comparison` | Compare/contrast | Medium | 2-column, before/after |
-| `quote` | Citation/emphasis | Low | Large quotation marks, attribution |
-| `data` | Highlight numbers/statistics | Low | Large number + supporting description |
-| `cta` | Call to action (last) | Minimal | Clear action instruction, account info |
+Eight roles available: `cover`, `statement`, `detail`, `list`, `comparison`, `quote`, `data`, `cta`. Each has a distinct spatial composition and text density. See [`references/card-types.md`](./references/card-types.md) for per-role layout patterns and CSS skeletons.
 
 **Series composition principles:**
-- First slide must be `cover`
-- Last slide must be `cta`
-- No more than 3 consecutive `detail` slides (breaks rhythm)
-- Place `statement` or `data` in the middle to control pacing
+- First slide must be `cover`, last must be `cta`
+- No more than 3 consecutive `detail` slides — insert `statement`, `data`, or `quote` for rhythm
+- Same role cannot repeat 3 times in a row (enforced in [`quality-gates.md`](./references/quality-gates.md))
 
 ---
 
@@ -665,12 +663,18 @@ for all tokens (weekly decay, check lastUpdated):
 
 | File | Purpose | When to Load |
 |---|---|---|
-| `references/design-principles.md` | Layout, color, typography principles | Every generation |
+| `references/design-principles.md` | Index → routes to the 6 split design files | First load (so you know what else to load) |
+| `references/canvas.md` | Canvas dims, CSS reset, centering pattern, SVG constraints | Every generation |
+| `references/typography.md` | Size scale, Korean rules, weight diversity, font selection | Every generation |
+| `references/layout.md` | Spacing, alignment, vertical placement, slide sequence | Every generation |
+| `references/color.md` | Color rules, palette reference, dangerous combinations | Every generation |
+| `references/card-types.md` | Per-role spatial composition + CSS patterns | Per slide — read only the role section |
+| `references/golden-examples.md` | 4 reference HTML slides (cover, data, list, CTA) | First slide of new series; quality bar checks |
 | `references/anti-patterns.md` | Forbidden pattern checklist | During self-verification |
-| `references/content-principles.md` | Copywriting principles | During content structuring |
+| `references/content-principles.md` | Voice, hooks, narrative, Korean style | During content structuring |
 | `references/font-presets.md` | Font recommendations & @import URLs | During font selection |
-| `references/visual-effects.md` | CSS/SVG visual effects (halftone, 3D, glass, text effects) | During HTML generation |
-| `references/quality-gates.md` | Hard limits — character caps, series structure, visual ceilings | Step [8.25] before self-verification |
+| `references/visual-effects.md` | CSS/SVG visual effects (halftone, 3D, glass, etc.) | During HTML generation |
+| `references/quality-gates.md` | Hard limits — char caps, series structure, visual ceilings | Step [8.25] before self-verification |
 | `references/asset-handling.md` | Logo/image handling, base64 vs path, overlay rules | When user mentions assets |
 
 ---

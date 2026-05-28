@@ -76,3 +76,11 @@ When generating a series, apply gates in this order:
 ## 5. When in Doubt
 
 The bias is **always toward less content**, not more. A card news that says one thing clearly beats one that says five things partially. If you cannot decide whether to include a slide, drop it.
+
+---
+
+## See also
+
+- [`content-principles.md`](./content-principles.md) — voice, hook patterns,
+  narrative frameworks, Korean copywriting style. Quality gates enforce limits;
+  content-principles shapes the voice within them.
