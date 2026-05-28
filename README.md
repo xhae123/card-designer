@@ -6,7 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/Claude%20Code-skill-7C3AED" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/node-%E2%89%A520-3B82F6" alt="Node 20+">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.4.0-22D3EE" alt="Version 0.4.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.5.0-22D3EE" alt="Version 0.5.0"></a>
 </p>
 
 ![Card Designer Banner](docs/hero.png)
@@ -17,20 +17,26 @@
 
 ## What it does
 
-- **Generates card news series** from a topic description — cover, content slides, and CTA, all with professional visual design
-- **Builds a brand system** through visual conversation — shows 3 design directions, you pick one, and it remembers your taste
-- **Dynamically writes HTML/CSS** every time — no fixed templates, guided by design principles and anti-pattern checks
-- **Learns from feedback** — every approval or rejection updates brand confidence scores, so designs improve over session
+- **Generates 5-7 slide series** with 8 distinct card roles (cover, statement, detail, list, comparison, quote, data, cta), each with its own spatial composition
+- **Builds brand identity through visual conversation** — Design Shotgun shows 3 directions (Impact / Minimal / Modern) before settling on one
+- **Living memory** — confidence-scored taste profile + learnings log + session timeline that recaps on every invocation
+- **Self-verifies before output reaches you** — 24-item anti-patterns checklist, post-render overflow detection, and 5-question series coherence check
+- **Lazy-loads real-world design references** on demand from Lapa.ninja, Siteinspire, Awwwards, Httpster, and Behance galleries
+- **Korean + English typography**, Puppeteer renders at 2× (1080 logical → 2160×2160 PNG)
 
 ## Features
 
-- **Brand memory** — taste profiles with confidence-scored color, typography, and layout preferences that evolve over time
-- **Design shotgun onboarding** — 3 visually distinct directions (Impact / Minimal / Modern) to discover brand identity fast
-- **8 card roles** — cover, statement, detail, list, comparison, quote, data, CTA — each with distinct spatial composition
-- **Visual variety enforcement** — AI checks that consecutive slides differ in layout, not just text
-- **Self-verification pipeline** — anti-pattern checklist runs before any output reaches you
-- **Puppeteer rendering** — slides rendered at 2× scale for retina sharpness (1080×1080 logical → 2160×2160 PNG output)
-- **Design reference system** — principles for typography, spacing, visual effects (halftone, glassmorphism, noise textures), and content writing
+- **Brand identity that evolves** — every design token (color, font, spacing, layout) carries a 0.1–1.0 confidence score. Approvals raise it (+0.15), rejections lower it (-0.2), unused values decay weekly (×0.95). At ≥0.8 a value becomes an established element the AI stops experimenting with.
+- **Living memory** — `taste-profile.json` + `learnings.jsonl` + `timeline.jsonl`. A "Welcome back" recap shows last work, recently learned rules, and lifetime series count at the start of every session.
+- **Rule promotion** — patterns repeated 3+ times at confidence ≥7 automatically promote to `type: rule` entries applied to every future series. Rules demote after 2 contradictions, keeping the brand from petrifying.
+- **Decision Brief (D<N>) format** — structured Context / ELI10 / Impact / Recommend / Alternative for real design choices. Trivial defaults skip the brief — the designer decides, shows, and accepts corrections.
+- **8 card roles with distinct spatial composition** — cover (impact), statement (whitespace), detail (hierarchy), list (rhythm), comparison (2-column), quote (centered), data (huge number), cta (action).
+- **Design Shotgun onboarding** — 3 visually distinct directions before settling, each using different CSS techniques (halftone vs glassmorphism vs pure typography), not just color swaps.
+- **Self-verification pipeline** — 24-item anti-patterns checklist + post-render overflow auto-detect with 2-retry CSS scaling + font fallback detection + 5-question series coherence check, all run before the user sees output.
+- **Hard quality gates** — per-role character caps and structural limits enforced before rendering. Violations split, drop, or reject — never silently truncate.
+- **Lazy-load external references** — fetches inspiration from 5 curated sites at 3 trigger moments (onboarding shotgun / aesthetic pivot / premium calibration). 4 fetches/session cap, in-memory only, graceful failure.
+- **Reference architecture** — design rules split across focused files (`canvas`, `typography`, `layout`, `color`, `card-types`, `golden-examples`) plus quality-gates, asset-handling, visual-effects, content-principles, and persona.
+- **Puppeteer 2× rendering** — element-precise screenshot eliminates edge bleed, font inlining with disk cache (`~/.cache/card-generator-fonts/`) keeps CDN failures from shipping serif fallbacks.
 
 ## Installation
 
@@ -70,21 +76,22 @@ Open Claude Code and type `/card-designer` — the skill should appear in your a
 
 ```
 You:  /card-designer
-AI:   Let's set up a new brand. Just tell me a few things:
-      - Brand or channel name?
-      - What field / industry?
-      - Tone? (professional / friendly / emotional / impactful)
-      - Instagram handle if you have one
+AI:   새 브랜드를 만들게요. 브랜드 이름 / 분야 / 톤 / 인스타 핸들 알려주세요.
 
 You:  "Devlog by Tom" / dev tools / professional but approachable / @devlog_tom
 
 AI:   [Shows 3 design directions: Impact, Minimal, Modern]
-      Which direction works for you — A, B, or C?
+
+      D1 — Pick a visual direction
+      Context: First series for a new brand.
+      ELI10: Color/font is easy to change later. Visual language (halftone
+        vs glass vs pure type) is the brand's identity.
+      Impact: Determines the system every future series builds on.
+      Recommend: C (Modern) — matches your "professional but approachable" tone.
+      Alternative: A (Impact) — if reach > polish.
 
 You:  C, but a little warmer
-
 AI:   [Adjusts palette, regenerates a refined sample]
-      ...
 ```
 
 ### Generating cards
@@ -92,9 +99,10 @@ AI:   [Adjusts palette, regenerates a refined sample]
 ```
 You:  Make a carousel on "5 AI coding tools every junior dev should know in 2026"
 
-AI:   Current brand: Devlog by Tom
-      [Generates 5-7 slides: cover → content → CTA]
-      [Opens rendered PNGs for review]
+AI:   현재 브랜드: Devlog by Tom
+      Welcome back — last work 2 days ago, "AI 페어 프로그래밍" series (approved).
+      Recently learned: 좌측 정렬 선호, 다크 배경 + 화이트 텍스트.
+      [Generates 5-7 slides: cover → content → CTA, opens PNGs for review]
 ```
 
 ### Feedback loop
@@ -107,26 +115,34 @@ You:  Looks great!
 AI:   [Logs approval, increases confidence on used tokens]
 ```
 
+### Aesthetic pivot (lazy-load fires)
+
+```
+You:  Same topic but make it more editorial — like a magazine
+AI:   [Triggers Lazy-Load #2: fetches 1 ref from Siteinspire's typographic category]
+      [Paraphrases vocabulary — "asymmetric grid", "drop cap", "rule lines"]
+      [Regenerates with editorial composition, same brand colors]
+```
+
 ## How it works
 
 ```
 Topic input
-    ↓
-Load brand profile + design references
-    ↓
-Content analysis → slide roles assigned (cover/detail/list/data/cta)
-    ↓
-Visual composition designed per slide (spatial layout before code)
-    ↓
-HTML/CSS dynamically generated (1080x1080, no templates)
-    ↓
-Self-verification against anti-patterns
-    ↓
-Puppeteer renders to PNG
-    ↓
-Visual inspection → fix if needed
-    ↓
-Present to user → feedback → learn
+  ↓ Brand detection → Session context recovery (timeline recap if existing)
+  ↓ Load brand profile + design references (canvas, typography, layout, color)
+  ↓ Apply auto-promoted rules from learnings.jsonl
+  ↓ Content analysis → 8 card roles assigned + narrative arc
+  ↓ [optional] Lazy-load external references on aesthetic pivot
+  ↓ Visual composition designed per slide (text-first, before code)
+  ↓ HTML/CSS generated (1080×1080, no templates)
+  ↓ Quality Gates — enforce hard character caps + structural limits
+  ↓ Series Coherence Check — 5 questions answered before render
+  ↓ Self-verification against 24-item anti-patterns checklist
+  ↓ Puppeteer renders to PNG at 2× (overflow detect + retry, font fallback warn)
+  ↓ Visual inspection → fix if needed
+  ↓ Present to user → feedback loop (approve / edit / reject)
+  ↓ Session End Protocol — confidence update, timeline writes, rule promotion scan, taste-profile save
+  ↓ SESSION COMPLETE
 ```
 
 The key insight: **there are no HTML templates**. The `references/` directory contains design principles, anti-patterns, font presets, and visual effect patterns (CSS/SVG). The AI composes HTML/CSS fresh each time, constrained by these principles. This means every series can have a unique visual language while maintaining brand consistency.
@@ -135,42 +151,78 @@ The key insight: **there are no HTML templates**. The `references/` directory co
 
 ```
 card-designer/
-  SKILL.md                        # Skill definition (Claude Code reads this)
+  SKILL.md                          # Skill definition (Claude Code reads this)
   scripts/
-    render.js                     # Puppeteer renderer
-    validate.js                   # HTML validation
-    package.json                  # Dependencies (puppeteer)
+    render.js                       # Puppeteer renderer + overflow detect/retry + font fallback warn
+    validate.js                     # HTML + series-level validator
+    package.json                    # Dependencies (puppeteer)
   references/
-    design-principles.md          # Index → points to canvas/typography/layout/color/card-types/golden-examples
-    canvas.md                     # Canvas + CSS reset + SVG constraints
-    typography.md                 # Size scale, Korean rules, weights, fonts
-    layout.md                     # Spacing, alignment, sequence, narrative
-    color.md                      # Color rules + palette reference
-    card-types.md                 # Per-role spatial composition + CSS
-    golden-examples.md            # 4 reference HTML slides (quality bar)
-    anti-patterns.md              # Forbidden patterns checklist
-    content-principles.md         # Voice, hooks, narrative, Korean style
-    font-presets.md               # Font recommendations + @import URLs
-    visual-effects.md             # CSS/SVG effects (halftone, glass, noise, etc.)
-    quality-gates.md              # Hard limits (character caps, structure)
-    asset-handling.md             # Logo/image handling
-  brands/                         # [gitignored] User brand data
+    design-principles.md            # Index → routes to the 6 split design files
+    canvas.md                       # Canvas dims, CSS reset, centering, SVG constraints
+    typography.md                   # Size scale, Korean rules, weights, font selection
+    layout.md                       # Spacing, alignment, sequence, narrative
+    color.md                        # Color rules, palette, dangerous combinations
+    card-types.md                   # Per-role spatial composition + CSS skeletons
+    golden-examples.md              # 4 reference HTML slides (quality bar)
+    anti-patterns.md                # 24-item forbidden pattern checklist
+    content-principles.md           # Voice, hooks, narrative, Korean style
+    font-presets.md                 # Font recommendations + @import URLs
+    visual-effects.md               # CSS/SVG effects (halftone, glass, noise, 3D)
+    quality-gates.md                # Hard limits — char caps, structure, visual ceilings
+    asset-handling.md               # Logos, images, base64 vs path, overlay rules
+    external-references.md          # Lazy-load WebFetch refs (3 triggers, 4-fetch cap)
+    persona.md                      # Designer voice + D<N> brief style
+  brands/                           # [gitignored] User brand data
     {brand-name}/
-      taste-profile.json          # Brand identity with confidence scores
-      learnings.jsonl             # Session-by-session learning log
-      output/{YYYYMMDD_HHmm}/    # Generated HTML + PNG output
+      taste-profile.json            # Brand identity with confidence scores
+      learnings.jsonl               # Session-by-session learning log
+      timeline.jsonl                # Append-only event log (for "Welcome back")
+      assets/                       # Brand logos & images
+      output/{YYYYMMDD_HHmm}/      # Generated HTML + PNG output
 ```
 
 ## Brand system
 
-Each brand has a **taste profile** — a living document where every design token (colors, fonts, spacing, layout preferences) carries a confidence score from 0.1 to 1.0:
+Each brand is a living document. Three files describe it:
+
+**`taste-profile.json`** — every design token (color, font, spacing, layout) carries a 0.1–1.0 confidence score.
 
 - **0.5** — initial default (educated guess based on industry)
 - **Approval** — confidence increases (+0.15)
-- **Rejection** — confidence decreases (-0.2), value updates
-- **Weekly decay** — unused values drift toward uncertainty (x0.95/week)
+- **Rejection / override** — confidence decreases (-0.2), value updates, new value starts at 0.6
+- **Weekly decay** — unused values drift toward uncertainty (×0.95/week)
+- **≥0.8** — established brand element; the AI stops experimenting unless explicitly overridden
 
-When confidence reaches 0.8+, a value is considered an "established brand element." This means the AI stops experimenting with that dimension and treats it as fixed — unless you explicitly override it.
+**`learnings.jsonl`** — append-only event log. Event types: `approved`, `rejected`, `rule`, `override`, `preference`. When the same semantic insight repeats 3+ times at confidence ≥7, it auto-promotes to a `type: rule` entry applied to every future series. Rules can also be demoted after 2 fresh contradictions, so the brand doesn't petrify.
+
+**`timeline.jsonl`** — append-only session event log (`onboarded`, `direction_selected`, `series_generated`, `profile_edit`, `feedback`, `rule_promoted`). The skill reads the last 10 entries on every invocation and shows a brief "Welcome back" recap — last work, recently learned rules, lifetime series count.
+
+**Decision Brief (D<N>)** — when a choice would flip a high-confidence value, affect multiple slides, or conflict with brand history, the AI emits a numbered brief (Context / ELI10 / Impact / Recommend / Alternative) instead of guessing. Example trigger: user says "lighter" but `color.background` has confidence 0.85 from prior approvals — D<N> fires to surface the conflict instead of silently flipping the established value. Default mode is "decide → show → accept corrections"; the brief is the exception.
+
+For the lazy-load reference system, see [`references/external-references.md`](references/external-references.md).
+
+## Quality system
+
+Multiple gates run before the user sees output:
+
+- **Hard caps** — per-role character limits (cover 60, statement 40, detail 30+80, list 5×30, quote 60+20, data 1+30, cta 40) and series structure (5–7 default, max 10, cover first, CTA last, no 3 consecutive same-role). Violations split, drop, or reject — never silently truncate. See [`references/quality-gates.md`](references/quality-gates.md).
+- **Series coherence check** — 5 carousel-level questions answered pre-render: cover promise resolved? tone consistent? narrative arc? cover strongest? slides stand alone? Any "no" forces revision. See [`SKILL.md`](SKILL.md) step [8.5].
+- **Anti-patterns checklist** — 24 items the AI runs before output. See [`references/anti-patterns.md`](references/anti-patterns.md).
+- **Render-time overflow detection** — `scripts/render.js` walks every descendant of `.slide`, scales `.content` down 10% per retry (max 2), then re-screenshots. Persistent overflow ships flagged in summary JSON.
+- **Font fallback detection** — after `document.fonts.ready`, the renderer inspects resolved `font-family`. Serif fallback on the primary family logs a warning, surfacing silent `@import` failures.
+- **Series-wide validator** — `scripts/validate.js` checks font-weight diversity, AI-slop fonts (Inter/Roboto/Arial/Helvetica as primary), per-slide color count (>3), and series consistency (mixed `.page-number` usage, divergent `.brand-mark` positions, multiple body font-families across slides).
+
+## External references (lazy-load)
+
+The skill MAY fetch real-world inspiration on demand via `WebFetch`. Lazy-load only — no prefetch, no disk cache, no persistence.
+
+- **5 curated sites** — Lapa.ninja (landing-page vocabulary), Siteinspire (editorial typography), Awwwards (premium polish), Httpster (current aesthetics), Behance (campaign-level concepts).
+- **3 trigger moments** — (1) Onboarding Shotgun before the 3 directions, up to 2 fetches; (2) aesthetic pivot on a clear tonal-shift request, 1 fetch; (3) premium calibration opt-in ("extra polish"), up to 2 fetches.
+- **Hard cap: 4 fetches per session.** Failures drop silently — generation is never blocked.
+- **Vocabulary, not templates** — fetched references become `inspiration_seeds` (paraphrased phrases the designer weaves into prompt context). HTML, copy, and imagery are never copied. A seed cannot override a taste-profile field with confidence ≥0.8.
+- **Korean coverage gap** — these sites skew Western. Korean design intuition lives in the skill's internal knowledge.
+
+See [`references/external-references.md`](references/external-references.md) for the prompt template and seed schema, and [`docs/design-references-research.md`](docs/design-references-research.md) for the curation rationale.
 
 ## Requirements
 
@@ -180,23 +232,17 @@ When confidence reaches 0.8+, a value is considered an "established brand elemen
 
 ## Troubleshooting
 
-**Puppeteer Chrome download fails on install**
-The default browser install can hit network or permission errors. Re-run with the explicit command:
-```bash
-cd scripts && npx puppeteer browsers install chrome
-```
+**Puppeteer Chrome download fails on install** — Re-run explicitly: `cd scripts && npx puppeteer browsers install chrome`.
 
-**Generated cards have white edges / bleed**
-Fixed since v0.1.0 — the renderer now screenshots the `.slide` element directly. If you still see this, make sure your slide HTML wraps content inside `<div class="slide">…</div>`.
+**Generated cards have white edges / bleed** — The renderer screenshots the `.slide` element directly. Make sure your HTML wraps content inside `<div class="slide">…</div>`.
 
-**Korean text breaks mid-word**
-The skill enforces `word-break: keep-all` on every slide. If you've customized HTML and skipped this rule, add it back to `.slide` or `body`.
+**Korean text breaks mid-word** — The skill enforces `word-break: keep-all` on every slide. If you've customized HTML and skipped this rule, add it back to `.slide` or `body`.
 
-**Fonts render as serif fallback in the PNG**
-Check that your `@import` URL is reachable. The renderer fetches CSS and inlines `woff2` files to `~/.cache/card-generator-fonts/`. Clear that directory to re-fetch if a CDN updated.
+**Fonts render as serif fallback in the PNG** — The renderer warns explicitly (look for `fontFallback` in the summary JSON). Check the `@import` URL is reachable. The renderer fetches CSS and inlines `woff2` files to `~/.cache/card-generator-fonts/`; clear that directory to re-fetch.
 
-**Skill doesn't appear in Claude Code**
-Verify the symlink: `ls -la ~/.claude/skills/card-designer` should point to your clone. Restart Claude Code after creating it.
+**Text overflows the slide** — The renderer auto-retries with a 10% `.content` scale-down (max 2 retries). Persistent overflow ships flagged in the summary JSON with offending selectors. Tighten copy or split the slide.
+
+**Skill doesn't appear in Claude Code** — Verify the symlink: `ls -la ~/.claude/skills/card-designer` should point to your clone. Restart Claude Code after creating it.
 
 ## Contributing
 
@@ -215,6 +261,8 @@ Inspired by — and built to push past the limitations of — earlier Claude Cod
 Anti-AI-slop design guidance draws from Anthropic's [frontend aesthetics cookbook](https://platform.claude.com/cookbook/coding-prompting-for-frontend-aesthetics).
 
 Korean typography defaults to [Pretendard](https://github.com/orioncactus/pretendard) by orioncactus.
+
+Design reference sites consulted lazily by the skill: [Lapa.ninja](https://www.lapa.ninja/), [Siteinspire](https://www.siteinspire.com/), [Awwwards](https://www.awwwards.com/), [Httpster](https://httpster.net/), [Behance](https://www.behance.net/).
 
 ## License
 

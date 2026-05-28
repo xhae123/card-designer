@@ -38,6 +38,7 @@ Always read and follow `references/persona.md`.
     visual-effects.md               # CSS/SVG visual effects patterns
     quality-gates.md                # Hard limits (NON-NEGOTIABLE)
     asset-handling.md               # Logos / images / brand assets
+    external-references.md          # Lazy-load WebFetch refs (3 triggers, 4-fetch cap)
   brands/
     {brand-name}/
       taste-profile.json            # Brand taste profile
@@ -127,13 +128,14 @@ CASE A — No brand (brands/ is empty or no taste-profile.json):
   → Run Brand Onboarding (see below)
 
 CASE B — 1 or more brands:
-  → Display list of registered brands
-  → "등록된 브랜드:"
-  →   "1. BrandA — tech / 다크 톤"
-  →   "2. + 새 브랜드 만들기"
-  → "어떤 브랜드로 만들까요?"
+  → Display list of registered brands (use the user's conversation language;
+    Korean strings below are examples, swap to English equivalents when appropriate)
+  → "등록된 브랜드:" / "Registered brands:"
+  →   "1. BrandA — tech / 다크 톤 (dark tone)"
+  →   "2. + 새 브랜드 만들기" / "+ Create new brand"
+  → "어떤 브랜드로 만들까요?" / "Which brand should we use?"
   → If user selects existing brand → Load that profile
-  → If user selects "새 브랜드" → Run Brand Onboarding
+  → If user selects "새 브랜드" / "new brand" → Run Brand Onboarding
 ```
 
 **Important:** If the user's request is clearly different in tone/purpose from the existing brand (e.g., a dark tech brand but requesting "라이트톤 스터디 공지"), do NOT automatically use the existing brand — ask "새 브랜드를 만들까요, 아니면 기존 브랜드를 수정할까요?"
@@ -163,7 +165,7 @@ For unknown fields, use reasonable defaults based on the industry.
 
 #### Phase 2: Design Shotgun — Present 3 Directions (core)
 
-Using only the user's industry/name info, generate **3 sample cover cards with completely different visual languages**.
+Using only the user's industry/name info, generate **3 sample cover cards with completely different visual languages**. Optionally consult [`references/external-references.md`](./references/external-references.md) per Lazy-Load trigger #1 before generating the directions, to seed visual language with real-world references.
 
 The 3 cards must differ not just in color, but in their entire **visual system** — background treatment, decorative elements, spatial metaphors. Reference `references/visual-effects.md` for concrete CSS patterns.
 
@@ -176,49 +178,36 @@ The 3 cards must differ not just in color, but in their entire **visual system**
 | **Reference style** | 멋사/Likelion style | 토스/Toss style | Startup/Product Hunt style |
 
 Each direction uses DIFFERENT CSS techniques from `visual-effects.md`:
-- A: halftone background (section 1), highlighted text boxes (section 6), folder metaphor (section 3)
-- B: no effects — relies purely on typography hierarchy, whitespace, and color
-- C: noise texture (section 4), glassmorphism (section 5), SVG accent shapes (section 7)
+- A: halftone bg (§1), highlighted text boxes (§6), folder metaphor (§3)
+- B: no effects — pure typography hierarchy, whitespace, color
+- C: noise texture (§4), glassmorphism (§5), SVG accent shapes (§7)
 
-Generation method:
-1. Generate HTML for the same dummy content (brand name + "첫 번째 카드뉴스 시리즈") in 3 different visual languages
-2. Each card must use at least 2 visual effects from `visual-effects.md` (except direction B which is intentionally minimal)
-3. Render all 3
-4. Open all 3 with `open` to show them simultaneously
-5. "A, B, C 중 어떤 방향이 마음에 드세요? 또는 'A인데 좀 더 밝게' 같이 섞어도 됩니다."
+Generation method: generate HTML for the same dummy content (brand name + "첫 번째 카드뉴스 시리즈") in 3 visual languages, each using ≥2 effects from `visual-effects.md` (except B). Render all 3, `open` them simultaneously, then ask: "A, B, C 중 어떤 방향이 마음에 드세요? / Which direction? Mixing is fine ('A but brighter')."
 
 **Why 3 visual languages:** Color and font are surface-level differences. Visual language (halftone vs glassmorphism vs pure typography) is what truly differentiates a brand. A user who picks A gets a completely different design system than one who picks C.
 
 #### Phase 3: Selection → Fine-tuning
 
 Once the user selects a direction:
-1. Generate taste-profile.json draft based on that direction
-2. Generate **1 more card** based on the selected direction (this time with real brand feel, not dummy)
-3. Incorporate user feedback for fine-tuning:
-   - "좀 더 밝게" → adjust background color, regenerate
-   - "폰트가 딱딱해" → change font, regenerate
-   - "색이 마음에 안 들어" → change palette, regenerate
-   - "좋아요!" → proceed to Phase 4
-4. Repeat the feedback → edit → regenerate loop **until satisfied**
-5. Update taste-profile.json with each edit
+1. Generate taste-profile.json draft for that direction
+2. Generate **1 more card** in that direction (real brand feel, not dummy)
+3. Fine-tune via feedback ("좀 더 밝게" → bg color; "폰트가 딱딱해" → font; "색이 마음에 안 들어" → palette; "좋아요!" → Phase 4) and regenerate each time
+4. Loop feedback → edit → regenerate until satisfied; update taste-profile.json with each edit
 
 **Core principle:** Don't discover taste through questions — show results and adjust based on reactions.
 People answer "이 폰트 어때요?" more precisely than "어떤 폰트를 원하세요?"
 
 #### Phase 4: Onboarding Complete
 
-Once the user approves the sample:
-1. Save final taste-profile.json
-2. Log onboarding results to learnings.jsonl
-3. "브랜드 '{name}' 등록 완료! 이제 주제를 주시면 카드뉴스를 만들게요."
-4. Open the final approved sample again with `open`
+Once the user approves the sample: save final taste-profile.json, log onboarding to learnings.jsonl, say "브랜드 '{name}' 등록 완료! 이제 주제를 주시면 카드뉴스를 만들게요." (or English equivalent), and `open` the approved sample again.
 
 ### [2] Input Analysis
 
 ```
-Analyze user input:
-  Topic/content provided       → Generation mode
-  "브랜드 수정/색상/폰트"      → Brand edit mode
+Analyze user input (trigger detection is language-agnostic — match intent, not exact phrasing):
+  Topic/content provided                                              → Generation mode
+  Brand edit intent ("change brand", "edit colors", "modify font",
+    "브랜드 수정", "색상 바꿔", etc.)                                 → Brand edit mode
 ```
 
 ### Generation Mode (core loop)
@@ -255,6 +244,10 @@ Analyze user input:
     - Determine narrative arc: Hook → Value → CTA
     - Decide slide count (default 5-7, max 10)
     - Assign roles per slide (see Card Roles below)
+    - If the user mentions a logo, brand image, or external graphic asset,
+      consult [`references/asset-handling.md`](./references/asset-handling.md)
+      and ask ONCE where the asset is. Copy it into brands/{name}/assets/ and
+      reuse across the entire series — never re-ask per slide.
 
 [6] Copywriting
     - Apply references/content-principles.md rules
@@ -272,6 +265,10 @@ Analyze user input:
 
     If you write HTML without visual composition, all slides end up the same.
     You must complete this step before writing HTML.
+
+[7.5] Aesthetic Pivot Check (optional, lazy-load)
+    - On clear tonal shift request ("more editorial/brutalist/fintech"),
+      optionally fetch 1 ref per Lazy-Load trigger #2 (`references/external-references.md`).
 
 [8] HTML/CSS Generation
     - Apply taste-profile tokens (colors, fonts, spacing)
@@ -301,29 +298,24 @@ Analyze user input:
     - node {SKILL_DIR}/scripts/render.js {output-dir}
 
 [10.5] Visual Verification (check rendered output)
-    - Open rendered PNGs with the Read tool and visually inspect
-    - Check items:
-      - Is any text clipped or overflowing?
-      - Did fonts load as intended? (serif fallback = failure)
-      - Is there sufficient whitespace? (content shouldn't feel cramped)
-      - Do slide layouts actually differ from each other? (★ key check)
-      - Is the cover visually stronger than the other slides?
-      - Overall, does it look "like a professional made it"?
-    - If issues found: fix HTML → re-render → re-check
-    - If unresolved after 2 fix attempts, show to user with noted issues
+    - Open rendered PNGs with the Read tool. Verify: no text clipping, fonts
+      loaded (no serif fallback), sufficient whitespace, slide layouts actually
+      differ (★), cover is strongest, looks professional.
+    - On issues: fix HTML → re-render → re-check. After 2 failed attempts,
+      show user with noted issues.
 
 [11] Present Preview
-    - Show generated PNGs to the user
-    - Explain design intent in 1-2 sentences
-    - Open all PNGs with the `open` command so the user can review immediately:
+    - Show PNGs, explain design intent in 1-2 sentences, and open all PNGs:
       open {output-dir}/slide_01.png {output-dir}/slide_02.png ...
 
 [12] Feedback Loop
     - Approved → log to learnings.jsonl, increase confidence of used tokens
     - Edit request → apply changes, regenerate, log changes
     - Rejected → log to learnings.jsonl with reason, decrease confidence
+    - Opt-in: if the user asks for "extra polish" / "premium feel", optionally
+      fetch Awwwards calibration per Lazy-Load trigger #3 (`references/external-references.md`).
 
-[13] Update taste-profile.json at session end
+[13] Run Session End Protocol (see "Session End Protocol" section below)
 ```
 
 ### Brand Edit Mode
@@ -382,7 +374,7 @@ Do NOT freestyle the body layout. Copy this skeleton and fill in the content.
 
 ```html
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{user-language}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1080">
@@ -425,6 +417,8 @@ Do NOT freestyle the body layout. Copy this skeleton and fill in the content.
 </html>
 ```
 
+> Set `lang` to match the slide content language: `ko` for Korean, `en` for English, etc. The default in this template is illustrative — change per series.
+
 **Why this structure is mandatory:**
 - `html, body` are pure reset (size + overflow only)
 - `.slide` is the 1080x1080 canvas with `position: relative`
@@ -448,20 +442,21 @@ Do NOT freestyle the body layout. Copy this skeleton and fill in the content.
 
 Elements that appear across multiple slides MUST use the EXACT SAME CSS. Not "similar" — identical, byte-for-byte.
 
-**★ STEP 0 of every card series generation:**
+**★ Pre-flight Setup (runs before slide HTML generation in Step [8]):**
 Before writing any slide HTML, first define the recurring elements CSS block for this series. This block is then COPY-PASTED VERBATIM into every slide's `<style>`. No modifications per slide.
 
-Example (adapt colors to the brand, but then use the SAME block everywhere):
+> **Template — do not copy hex values verbatim.** The `#XXXXXX` values below are placeholders to show structure. Replace EVERY hex code with the current brand's actual taste-profile colors before pasting into any slide. The hex codes shown are illustrative, not defaults.
 
 ```css
 /* ====== RECURRING ELEMENTS — COPY THIS BLOCK INTO EVERY SLIDE ====== */
+/* REPLACE all #XXXXXX values with this brand's taste-profile colors. */
 .page-number {
   position: absolute;
   bottom: 40px;
   right: 80px;
   font-size: 14px;
   font-weight: 500;
-  color: #C4B5D9;          /* ← brand muted color */
+  color: #C4B5D9;          /* REPLACE: brand muted color */
 }
 .bottom-accent {
   position: absolute;
@@ -469,7 +464,7 @@ Example (adapt colors to the brand, but then use the SAME block everywhere):
   left: 80px;
   width: 40px;
   height: 2px;
-  background: #7C3AED;     /* ← brand accent */
+  background: #7C3AED;     /* REPLACE: brand accent */
   opacity: 0.4;
 }
 .brand-mark {
@@ -479,7 +474,7 @@ Example (adapt colors to the brand, but then use the SAME block everywhere):
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: #6B5990;           /* ← brand secondary */
+  color: #6B5990;           /* REPLACE: brand secondary */
   text-transform: uppercase;
 }
 /* ====== END RECURRING ELEMENTS ====== */
@@ -498,23 +493,25 @@ Example (adapt colors to the brand, but then use the SAME block everywhere):
 
 ## Self-Verification Checklist
 
+> This is a quick-reference summary. The authoritative checklist is [`references/anti-patterns.md`](./references/anti-patterns.md) (24 items, run all of them). Codes in parentheses map each line below to the corresponding anti-patterns entry.
+
 Must verify **before** showing generated HTML to the user:
 
-- [ ] Does text stay within the 1080px area without overflow?
-- [ ] Is the text-to-background contrast ratio at least 4.5:1?
-- [ ] Is `word-break: keep-all` applied to all Korean text?
-- [ ] Are body width/height specified exactly?
-- [ ] Is the font `@import` inside the head?
-- [ ] Is visual consistency (colors, fonts, spacing) maintained across slides?
-- [ ] Is the cover slide's hook within 8 words?
-- [ ] Does the CTA slide have a specific call-to-action?
-- [ ] Are there no 3 consecutive slides with the same layout?
-- [ ] Does all text meet the minimum line-height?
-- [ ] ★ Does each slide's spatial composition actually differ? (different text only = fail)
-- [ ] ★ Is the cover visually stronger than the other slides?
-- [ ] ★ Are there subtle variations in background treatment? (all identical solid color = fail)
+- [ ] Does text stay within the 1080px area without overflow? (A2, A3)
+- [ ] Is the text-to-background contrast ratio at least 4.5:1? (E15)
+- [ ] Is `word-break: keep-all` applied to all Korean text? (F20)
+- [ ] Are body width/height specified exactly? (covered by mandatory boilerplate; cross-check A3)
+- [ ] Is the font `@import` inside the head? (C11 — font selection integrity)
+- [ ] Is visual consistency (colors, fonts, spacing) maintained across slides? (G21, G24)
+- [ ] Is the cover slide's hook within 8 words? (see `quality-gates.md` §1 cover cap; narrative G23)
+- [ ] Does the CTA slide have a specific call-to-action? (G23)
+- [ ] Are there no 3 consecutive slides with the same layout? (G22)
+- [ ] Does all text meet the minimum line-height? (see `quality-gates.md` §3)
+- [ ] ★ Does each slide's spatial composition actually differ? (G22 — different text only = fail)
+- [ ] ★ Is the cover visually stronger than the other slides? (G22, A1)
+- [ ] ★ Are there subtle variations in background treatment? (B4 — all identical solid color = fail)
 
-If any check fails, fix and regenerate. Never show a failed result to the user.
+If any check fails, fix and regenerate. Never show a failed result to the user. Then run the full 24-item `anti-patterns.md` pass (A1–A3, B4–B6, C7–C11, D12–D14, E15–E17, F18–F20, G21–G24) before rendering.
 
 ---
 
@@ -526,23 +523,13 @@ node {SKILL_DIR}/scripts/render.js {output-dir}
 
 - Finds all `slide_*.html` files in `output-dir` and renders them to PNG
 - Output: `slide_01.png`, `slide_02.png`, ... in the same directory
-- Puppeteer settings: viewport 1080×1080, deviceScaleFactor 1 (1080px is already Instagram high-res)
+- Puppeteer settings: viewport 1080×1080, deviceScaleFactor 2 (renders at 2160×2160 PNG for retina sharpness)
 
 ---
 
 ## Output Structure
 
-```
-brands/{brand-name}/output/{YYYYMMDD_HHmm}/
-  slide_01.html        # Original HTML
-  slide_02.html
-  ...
-  slide_01.png         # Rendered image
-  slide_02.png
-  ...
-```
-
-Filenames always follow the `slide_XX` format (starting from 01, zero-padded).
+Output dir: `brands/{brand-name}/output/{YYYYMMDD_HHmm}/`, containing paired `slide_XX.html` + `slide_XX.png` (01-indexed, zero-padded).
 
 ---
 
@@ -637,6 +624,16 @@ If a `type: rule` insight is contradicted by 2 fresh `rejected` or `override` en
 
 ---
 
+## External Design References (Lazy-Load)
+
+The skill MAY fetch real-world design inspiration on demand via `WebFetch`. Lazy-load only — no prefetch, no disk cache, no persistence. **Hard cap: 4 fetches per session** across all triggers. On failure or vague output: drop the seed and continue. Generation is NEVER blocked by a failed fetch. Full site list, per-trigger detail, prompt template, and the `inspiration_seeds` schema live in [`references/external-references.md`](./references/external-references.md) — load it only when a trigger fires.
+
+**Three trigger moments:** (1) **Onboarding Shotgun** — Brand Onboarding Phase 2, before the 3 visual directions, up to 2 fetches. (2) **Aesthetic pivot** — Generation Mode Step [7.5], on a clear tonal-shift request, 1 fetch. (3) **Premium calibration** — Feedback Loop Step [12], opt-in only ("extra polish"), up to 2 fetches.
+
+**Seeds are vocabulary, not templates.** The designer paraphrases seed phrases into prompt context; never copies HTML, copy, or imagery. A seed CANNOT override any taste-profile field with confidence ≥ 0.8 — it informs unestablished dimensions only. Seeds are dropped at trigger end and never persisted.
+
+---
+
 ## Confidence Update Logic
 
 Logic for updating taste-profile.json at session end:
@@ -676,6 +673,21 @@ for all tokens (weekly decay, check lastUpdated):
 | `references/visual-effects.md` | CSS/SVG visual effects (halftone, 3D, glass, etc.) | During HTML generation |
 | `references/quality-gates.md` | Hard limits — char caps, series structure, visual ceilings | Step [8.25] before self-verification |
 | `references/asset-handling.md` | Logo/image handling, base64 vs path, overlay rules | When user mentions assets |
+| `references/external-references.md` | Top-5 fetchable sites + 3 lazy-load triggers + `inspiration_seeds` schema | On demand (lazy-load triggers) |
+
+---
+
+## Session End Protocol
+
+Every session ends with these steps in this exact order. Do not skip, do not reorder.
+
+1. **Apply confidence updates** from this session (per "Confidence Update Logic" above) to every taste-profile token that was used.
+2. **Write any pending `timeline.jsonl` entries** that have not yet been appended (`series_generated`, `feedback`, `profile_edit`).
+3. **Run the rule promotion scan** (per "Memory Consolidation — Rule Promotion" above). If any insight crosses the 3+ entries / confidence ≥7 threshold, append a `type: rule` line to `learnings.jsonl` AND a `rule_promoted` event to `timeline.jsonl`.
+4. **Save `taste-profile.json`** with a new `lastUpdated` timestamp (ISO 8601 UTC).
+5. **Emit the `═══ SESSION COMPLETE ═══` block** as the final message (see below).
+
+Step [13] of the workflow is shorthand for this protocol.
 
 ---
 

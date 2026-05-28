@@ -10,10 +10,18 @@ Card Designer is a Claude Code skill — it has no compile step, no runtime. It 
 card-designer/
 ├── SKILL.md                    # The entry point — Claude reads this first
 ├── references/
-│   ├── design-principles.md    # Visual design rules
+│   ├── design-principles.md    # Index → routes to the 6 design files below
+│   ├── canvas.md               # Canvas + CSS reset + centering pattern
+│   ├── typography.md           # Size scale, Korean rules, font selection
+│   ├── layout.md               # Spacing, alignment, slide sequence
+│   ├── color.md                # Color rules + palette reference
+│   ├── card-types.md           # Per-role spatial composition + CSS
+│   ├── golden-examples.md      # Reference HTML slides (quality bar)
 │   ├── anti-patterns.md        # Self-verification checklist
-│   ├── content-principles.md   # Copywriting rules
+│   ├── content-principles.md   # Voice, hooks, narrative, Korean style
 │   ├── font-presets.md         # Korean/English font recommendations
+│   ├── quality-gates.md        # Hard limits (character caps, structure)
+│   ├── asset-handling.md       # Logo/image handling
 │   ├── persona.md              # Designer voice & tone
 │   └── visual-effects.md       # CSS/SVG patterns library
 └── scripts/
@@ -23,7 +31,7 @@ card-designer/
 
 ## What kinds of contributions help
 
-- **Design rule improvements** — sharper, more specific rules in `references/design-principles.md` (especially with golden examples)
+- **Design rule improvements** — sharper, more specific rules in the design files (`canvas.md`, `typography.md`, `layout.md`, `color.md`, `card-types.md`) or new entries in `golden-examples.md`
 - **Anti-pattern additions** — new failure modes you've observed in real output → `references/anti-patterns.md`
 - **Visual effect recipes** — new CSS/SVG techniques in `references/visual-effects.md` with working code
 - **Font preset additions** — more language coverage (Japanese, Chinese, etc.) in `references/font-presets.md`

@@ -5,6 +5,31 @@ All notable changes to Card Designer will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] — 2026-05-28
+
+### Added
+- External design references (lazy-load). The skill can now fetch real-world
+  inspiration from 5 curated sites (Lapa.ninja, Siteinspire, Awwwards,
+  Httpster, Behance galleries) at 3 trigger moments — onboarding shotgun,
+  aesthetic pivot, and explicit premium calibration. Hard cap of 4 fetches
+  per session, in-memory only, no persistence. Graceful failure: blocked
+  fetches never break generation. See references/external-references.md.
+- inspiration_seeds transient object: prompt vocabulary derived from
+  fetched references, never used as literal templates, cannot override
+  established (≥0.8 confidence) brand values.
+
+### Changed
+- SKILL.md gains "External Design References (Lazy-Load)" section and
+  trigger anchors in Brand Onboarding Phase 2, Generation Mode Step [7.5],
+  and the Feedback Loop step.
+
+### Fixed
+- SKILL.md rendering doc corrected: deviceScaleFactor 2 (was 1, contradicted
+  render.js and the README).
+- CONTRIBUTING.md directory tree and contribution targets updated to
+  reflect the v0.3/v0.4 reference architecture (canvas/typography/layout/
+  color/card-types/golden-examples/quality-gates/asset-handling).
+
 ## [0.4.0] — 2026-05-28
 
 ### Changed
