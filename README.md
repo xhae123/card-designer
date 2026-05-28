@@ -2,9 +2,11 @@
 
 <h1>card-designer</h1>
 
-<p><strong>Carousel generators forget your brand the moment you close the tab.<br/>This one remembers — and gets sharper every session.</strong></p>
+<p><strong>Most carousel tools generate. This one accumulates.</strong></p>
 
-<sub>Claude Code skill · Instagram 1080×1080 · puppeteer-rendered retina · brand grammar that compounds</sub>
+<p>A Claude Code skill that ships Instagram carousels — and writes a real brand design system to disk while it does. Logos stay pixel-perfect. Idioms get locked. Mood compounds. Your tenth carousel is unrecognizable from your first.</p>
+
+<sub>Claude Code skill · Instagram 1080×1080 · puppeteer-rendered retina · brand grammar as files you own</sub>
 
 </div>
 
